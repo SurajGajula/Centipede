@@ -1,6 +1,6 @@
 # Centipede
 
-#How to Play
+## How to Play
 
 Clone ts repo
 
@@ -10,6 +10,6 @@ Bam
 
 https://x.com/surajgajula
 
-#Comments
+## Comments
 
 Yes the local storage stuff isn't secure I'll fix that later
