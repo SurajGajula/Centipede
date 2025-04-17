@@ -22,6 +22,15 @@ margin-bottom: 8px;
     flex: 1;
     padding: 20px;
     background-color: #e0e0e0;
+    color: white;
+}
+#leftUI h1,
+#leftUI h2,
+#leftUI h3,
+#leftUI h4,
+#leftUI h5,
+#leftUI h6 {
+    color: initial;
 }
 #rightUI {
     width: 200px;
