@@ -13,6 +13,10 @@ padding-left: 20px;
 .info-panel li {
 margin-bottom: 8px;
 }
+#leftUI .info-panel h2 {
+    color: white !important;
+    margin-top: 0;
+}
 #game-container {
     display: flex;
     width: 100%;
@@ -39,4 +43,38 @@ margin-bottom: 8px;
     display: flex;
     flex-direction: column;
     align-items: stretch;
+}
+.ally-details-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
+.ally-image {
+    max-width: 150px;
+    height: auto;
+    flex-shrink: 0;
+}
+.ally-stats-container {
+    flex-grow: 1;
+    margin: 0;
+}
+.ally-stats {
+    margin: 0;
+}
+.enemy-image {
+    max-width: 150px;
+    height: auto;
+    flex-shrink: 0;
+}
+.enemy-details-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
+.enemy-stats-container {
+    flex-grow: 1;
+    margin: 0;
+}
+.enemy-stats {
+    margin: 0;
 }

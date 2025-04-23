@@ -1,6 +1,7 @@
 class Account {
-    constructor(level) {
+    constructor(level, marbles) {
         this.level = level;
+        this.marbles = marbles;
     }
 }
 export default Account;

@@ -2,38 +2,53 @@ import Account from "./account.js";
 import Ally from "./ally.js";
 import Enemy from "./enemy.js";
 import Recruitment from "./recruitment.js";
+import { handleApiError } from './error.js';
 export async function initialize(username, password) {
-    let accountData;
     try {
-        const response = await fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadaccount", {
+        const accountPromise = fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadaccount", {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error(`Load Account API failed with status ${response.status}`);
+            }
+            return response.json();
         });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        accountData = await response.json();
+        const alliesPromise = fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadallies", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error(`Load Allies API failed with status ${response.status}`);
+            }
+            return response.json();
+        });
+        const enemiesPromise = fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadnewenemies", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error(`Load New Enemies API failed with status ${response.status}`);
+            }
+            return response.json();
+        });
+        const [accountData, alliesData, enemiesData] = await Promise.all([accountPromise, alliesPromise, enemiesPromise]);
+        const alliesList = Array.isArray(alliesData) ? alliesData : [];
+        const enemiesList = Array.isArray(enemiesData) ? enemiesData : [];
+        const account = new Account(accountData.Level, accountData.Marbles);
+        const allies = alliesList.map(ally => new Ally(ally.Name, ally.Level, ally.Attack, ally.Health, ally.Skill));
+        const enemies = enemiesList.map(enemy => new Enemy(enemy.Name, enemy.Level, enemy.Attack, enemy.Health, enemy.Skill));
+        const recruitments  = [
+            new Recruitment("RecruitmentName", ["AllyName", "AllyName", "AllyName"]),
+            new Recruitment("RecruitmentName", ["AllyName", "AllyName", "AllyName"]),
+            new Recruitment("RecruitmentName", ["AllyName", "AllyName", "AllyName"])
+        ];
+        return { account, allies, enemies, recruitments };
     } catch (error) {
-        console.error("Failed to load account data:", error);
-        accountData = { level: "DefaultLevelOnError" };
+        handleApiError('initializing game data', error);
+        return null;
     }
-    const account = new Account(accountData.level);
-    const allies = [
-        new Ally("AllyName", "AllyLevel", "AllyAttack", "AllyHealth"),
-        new Ally("AllyName", "AllyLevel", "AllyAttack", "AllyHealth"),
-        new Ally("AllyName", "AllyLevel", "AllyAttack", "AllyHealth")
-    ];
-    const enemies = [
-        new Enemy("EnemyName", "EnemyLevel", "EnemyAttack", "EnemyHealth"),
-        new Enemy("EnemyName", "EnemyLevel", "EnemyAttack", "EnemyHealth")
-    ];
-    const recruitments  = [
-        new Recruitment("RecruitmentName", ["AllyName", "AllyName", "AllyName"]),
-        new Recruitment("RecruitmentName", ["AllyName", "AllyName", "AllyName"]),
-        new Recruitment("RecruitmentName", ["AllyName", "AllyName", "AllyName"])
-    ];
-    return { account, allies, enemies, recruitments };
 }

@@ -1,3 +1,4 @@
+import { handleApiError } from './error.js';
 function displayLoginForm() {
     const loginContainer = document.getElementById('login-container');
     if (!loginContainer) {
@@ -50,7 +51,6 @@ async function handleFormSubmit(event) {
     }
 }
 async function attemptLogin(username, password) {
-    console.log(`Attempting login for user: ${username}`);
     try {
         const response = await fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/login", {
             method: 'POST',
@@ -60,15 +60,21 @@ async function attemptLogin(username, password) {
             body: JSON.stringify({ username, password }),
         });
 
-        if (!response.ok) {
-            console.error('Login failed with status:', response.status);
+        if (response.status === 200 || response.status === 201) {
+            return true;
+        } else {
+            console.error(`Login/Registration failed with status: ${response.status}`);
+            try {
+                const errorBody = await response.json();
+                console.error('Error details:', errorBody);
+            } catch (e) {
+                console.error('Could not parse error response body.');
+            }
             return false;
         }
-        const result = await response.json();
-        return result.message === "Login successful.";
 
     } catch (error) {
-        console.error('Network or other error during login:', error);
+        console.error('Network or other error during login/registration:', error);
         return false;
     }
 }
@@ -90,19 +96,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (storedUsername && storedPassword) {
         attemptLogin(storedUsername, storedPassword).then(success => {
             if (success) {
-                console.log('Auto-login successful.');
                 proceedToGame();
             } else {
-                console.log('Auto-login failed. Clearing stored credentials.');
                 localStorage.removeItem('username');
                 localStorage.removeItem('password');
                 displayLoginForm();
             }
         }).catch(error => {
-             console.error('Error during auto-login attempt:', error);
-             localStorage.removeItem('username');
-             localStorage.removeItem('password');
-             displayLoginForm();
+            handleApiError('auto-login', error);
         });
     } else {
         displayLoginForm();

@@ -2,14 +2,18 @@
 
 ## How to Play
 
-Clone ts repo
+Clone this repo
+
+Cd src
 
 Run a live server
 
-Bam
+Make an account
 
-https://x.com/surajgajula
+Bam
 
 ## Comments
 
-Yes the local storage stuff isn't secure I'll fix that later
+Yes the auth stuff isn't secure I'll fix that later
+
+https://x.com/surajgajula
