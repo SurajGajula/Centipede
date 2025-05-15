@@ -1,0 +1,163 @@
+.party-button,
+.battle-button,
+.info-button {
+    padding: 12px 20px;
+    color: white;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 1em;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+}
+.party-button,
+.battle-button {
+    background: linear-gradient(135deg, #606060 0%, #404040 100%);
+}
+.party-button:hover,
+.battle-button:hover {
+    background: linear-gradient(135deg, #909090 0%, #606060 100%);
+    box-shadow: 0 5px 15px rgba(96, 96, 96, 0.4);
+    transform: translateY(-2px);
+}
+.info-button {
+    background: linear-gradient(135deg, #404040 0%, #202020 100%);
+}
+.info-button:hover {
+    background: linear-gradient(135deg, #606060 0%, #404040 100%);
+    box-shadow: 0 5px 15px rgba(64, 64, 64, 0.4);
+    transform: translateY(-2px);
+}
+.party-button:active,
+.battle-button:active,
+.info-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+}
+.party-button::after,
+.battle-button::after,
+.info-button::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.1);
+    transform: skewX(-20deg);
+    transition: all 0.5s ease;
+}
+.party-button:hover::after,
+.battle-button:hover::after,
+.info-button:hover::after {
+    left: 100%;
+}
+.ally-buttons,
+.enemy-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+    width: 100%;
+    justify-content: center;
+}
+#logout-button {
+    padding: 8px 15px;
+    background: linear-gradient(135deg, #606060 0%, #404040 100%);
+    color: white;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.85em;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+    margin-top: 10px;
+}
+#logout-button:hover {
+    background: linear-gradient(135deg, #909090 0%, #606060 100%);
+    box-shadow: 0 5px 15px rgba(96, 96, 96, 0.4);
+    transform: translateY(-2px);
+}
+#logout-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+}
+#logout-button::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.1);
+    transform: skewX(-20deg);
+    transition: all 0.5s ease;
+}
+#logout-button:hover::after {
+    left: 100%;
+}
+#accountButton,
+#alliesButton,
+#enemiesButton,
+#recruitButton {
+    padding: 8px 15px;
+    background: linear-gradient(135deg, #606060 0%, #404040 100%);
+    color: white;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.85em;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+    margin-bottom: 15px;
+    width: 100%;
+}
+#accountButton:hover,
+#alliesButton:hover,
+#enemiesButton:hover,
+#recruitButton:hover {
+    background: linear-gradient(135deg, #909090 0%, #606060 100%);
+    box-shadow: 0 5px 15px rgba(96, 96, 96, 0.4);
+    transform: translateY(-2px);
+}
+#accountButton:active,
+#alliesButton:active,
+#enemiesButton:active,
+#recruitButton:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+}
+#accountButton::after,
+#alliesButton::after,
+#enemiesButton::after,
+#recruitButton::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.1);
+    transform: skewX(-20deg);
+    transition: all 0.5s ease;
+}
+#accountButton:hover::after,
+#alliesButton:hover::after,
+#enemiesButton:hover::after,
+#recruitButton:hover::after {
+    left: 100%;
+}

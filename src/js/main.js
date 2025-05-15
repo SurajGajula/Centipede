@@ -1,5 +1,6 @@
 import { loadAccount, loadAllies, loadEnemies, loadRecruitments } from "./menu.js";
 import { initialize } from "./initialize.js";
+import { startBattle } from "./battle.js";
 const accountButton = document.getElementById("accountButton");
 const alliesButton = document.getElementById("alliesButton");
 const enemiesButton = document.getElementById("enemiesButton");

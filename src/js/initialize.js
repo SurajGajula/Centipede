@@ -39,8 +39,8 @@ export async function initialize(username, password) {
         const alliesList = Array.isArray(alliesData) ? alliesData : [];
         const enemiesList = Array.isArray(enemiesData) ? enemiesData : [];
         const account = new Account(accountData.Level, accountData.Marbles);
-        const allies = alliesList.map(ally => new Ally(ally.Name, ally.Level, ally.Attack, ally.Health, ally.Skill));
-        const enemies = enemiesList.map(enemy => new Enemy(enemy.Name, enemy.Level, enemy.Attack, enemy.Health, enemy.Skill));
+        const allies = alliesList.map(ally => new Ally(ally.Name, ally.Level, ally.Attack, ally.Health, ally.SkillName, ally.SkillStatus, ally.SkillCount, ally.SkillHits));
+        const enemies = enemiesList.map(enemy => new Enemy(enemy.Name, enemy.Level, enemy.Attack, enemy.Health, enemy.SkillName, enemy.SkillStatus, enemy.SkillCount, enemy.SkillHits));
         const recruitments  = [
             new Recruitment("RecruitmentName", ["AllyName", "AllyName", "AllyName"]),
             new Recruitment("RecruitmentName", ["AllyName", "AllyName", "AllyName"]),
