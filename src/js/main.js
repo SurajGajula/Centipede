@@ -7,13 +7,13 @@ const enemiesButton = document.getElementById("enemiesButton");
 const recruitButton = document.getElementById("recruitButton");
 window.setupUI = async function() {
     const username = localStorage.getItem('username');
-    const password = localStorage.getItem('password');
-    if (!username || !password) {
+    const hashedPassword = localStorage.getItem('hashedPassword');
+    if (!username || !hashedPassword) {
         console.error("Cannot setup UI without credentials in localStorage.");
         return;
     }
     try {
-        const { account, allies, enemies, recruitments } = await initialize(username, password);
+        const { account, allies, enemies, recruitments } = await initialize(username, hashedPassword);
         loadAccount(account);
         accountButton.addEventListener("click", () => loadAccount(account));
         alliesButton.addEventListener("click", () => loadAllies(allies));

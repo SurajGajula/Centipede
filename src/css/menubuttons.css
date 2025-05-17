@@ -108,7 +108,8 @@
 #accountButton,
 #alliesButton,
 #enemiesButton,
-#recruitButton {
+#recruitButton,
+#skill-button {
     padding: 8px 15px;
     background: linear-gradient(135deg, #606060 0%, #404040 100%);
     color: white;
@@ -129,7 +130,8 @@
 #accountButton:hover,
 #alliesButton:hover,
 #enemiesButton:hover,
-#recruitButton:hover {
+#recruitButton:hover,
+#skill-button:hover {
     background: linear-gradient(135deg, #909090 0%, #606060 100%);
     box-shadow: 0 5px 15px rgba(96, 96, 96, 0.4);
     transform: translateY(-2px);
@@ -137,14 +139,16 @@
 #accountButton:active,
 #alliesButton:active,
 #enemiesButton:active,
-#recruitButton:active {
+#recruitButton:active,
+#skill-button:active {
     transform: translateY(1px);
     box-shadow: 0 2px 3px rgba(0,0,0,0.1);
 }
 #accountButton::after,
 #alliesButton::after,
 #enemiesButton::after,
-#recruitButton::after {
+#recruitButton::after,
+#skill-button::after {
     content: '';
     position: absolute;
     top: 0;
@@ -158,6 +162,7 @@
 #accountButton:hover::after,
 #alliesButton:hover::after,
 #enemiesButton:hover::after,
-#recruitButton:hover::after {
+#recruitButton:hover::after,
+#skill-button:hover::after {
     left: 100%;
 }

@@ -13,7 +13,7 @@ export function loadAccount(account){
     if (logoutButton) {
         logoutButton.addEventListener("click", () => {
             localStorage.removeItem('username');
-            localStorage.removeItem('password');
+            localStorage.removeItem('hashedPassword');
             window.location.href = 'index.html';
         });
     }
@@ -103,7 +103,7 @@ export function loadEnemies(enemies){
             import('./initialize.js').then(module => {
                 module.initialize(
                     localStorage.getItem('username'), 
-                    localStorage.getItem('password')
+                    localStorage.getItem('hashedPassword')
                 ).then(data => {
                     if (data && data.allies && data.allies.length > 0) {
                         const firstAlly = data.allies[0];

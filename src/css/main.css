@@ -1,6 +1,8 @@
 @import "menu.css";
 @import "login.css";
 @import "battle.css";
+@import "status.css";
+@import "loading.css";
 html {
     margin: 0;
     padding: 0;
@@ -19,6 +21,8 @@ body {
     box-sizing: border-box;
     display: flex;
     font-family: Arial, sans-serif;
+    position: relative;
+    background-color: #121212;
 }
 button {
     margin-bottom: 10px;

@@ -8,20 +8,26 @@
 .health-bars {
     display: flex;
     justify-content: space-between;
-    padding: 15px;
+    padding: 10px 15px;
     z-index: 3;
+    margin-top: -15px;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
 }
 .ally-health-container, .enemy-health-container {
     display: flex;
     flex-direction: column;
-    width: 250px;
+    width: 500px;
+    position: relative;
+    margin-top: 40px;
 }
 .health-bar-background {
     background-color: #333;
-    height: 25px;
+    height: 17px;
     width: 100%;
     border-radius: 3px;
-    border: 2px solid #222;
+    border: 1px solid #222;
     box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
 }
 .health-bar {
@@ -58,6 +64,7 @@
     justify-content: space-between;
     align-items: flex-end;
     padding: 20px;
+    padding-bottom: 30px;
     z-index: 2;
 }
 .battle-ground {
@@ -75,8 +82,57 @@
     flex-direction: column;
     align-items: center;
     margin-bottom: 0;
+    position: relative;
 }
 .battle-ally img, .battle-enemy img {
     max-height: 180px;
     max-width: 140px;
+}
+.notification-container {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+}
+.status-notification, .damage-notification {
+    padding: 5px 10px;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    opacity: 0;
+    transform: translateY(0);
+}
+.status-notification {
+    color: rgba(175, 100, 255, 1);
+    text-shadow: 0px 0px 3px #000;
+    animation: fadeUpAndOut 1s forwards;
+}
+.damage-notification {
+    color: rgba(255, 80, 80, 1);
+    text-shadow: 0px 0px 3px #000;
+    animation: fadeUpAndOut 1s forwards;
+}
+@keyframes fadeUpAndOut {
+    0% {
+        opacity: 0;
+        transform: translateY(0);
+    }
+    20% {
+        opacity: 1;
+        transform: translateY(-5px);
+    }
+    80% {
+        opacity: 1;
+        transform: translateY(-15px);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-25px);
+    }
 } 
