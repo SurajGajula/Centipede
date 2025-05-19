@@ -3,6 +3,8 @@
 @import "battle.css";
 @import "status.css";
 @import "loading.css";
+@import "menubuttons.css";
+@import "recruitment.css";
 html {
     margin: 0;
     padding: 0;

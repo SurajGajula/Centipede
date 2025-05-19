@@ -1,11 +1,23 @@
-import { startBattle } from "./battle.js";
+import { setupBattleButtons } from './battle.js';
+import { setupRecruitButtons } from './recruitment.js';
 export function loadAccount(account){
+    try {
+        const storedAccount = JSON.parse(sessionStorage.getItem('accountData'));
+        if (storedAccount && storedAccount.marbles !== undefined) {
+            account.marbles = storedAccount.marbles;
+            if (storedAccount.level) {
+                account.level = storedAccount.level;
+            }
+        }
+    } catch (e) {
+        console.error("Failed to retrieve session storage account data:", e);
+    }
     const leftUI = document.getElementById("leftUI");
     leftUI.innerHTML = `
     <h1>Account</h1>
-    <div class="info-panel">
+    <div class="info-panel account-info">
     <p><strong>Level:</strong> ${account.level}</p>
-    <p><strong>Marbles:</strong> ${account.marbles}</p>
+    <p><strong>Marbles:</strong> <span class="marble-display">${account.marbles}</span></p>
     <button id="logout-button">Logout</button>
     </div>
     `;
@@ -14,118 +26,141 @@ export function loadAccount(account){
         logoutButton.addEventListener("click", () => {
             localStorage.removeItem('username');
             localStorage.removeItem('hashedPassword');
+            sessionStorage.removeItem('accountData');
             window.location.href = 'index.html';
         });
     }
 }
-export function loadAllies(allies){
-    const leftUI = document.getElementById("leftUI");
-    const allySections = allies.map((ally, index) => {
-        const imageName = `${ally.name}.svg`;
+function createSectionHTML(sectionType, items) {
+    return items.map((item, index) => {
+        const imageName = `${item.name}.svg`;
         const imagePath = `../assets/images/${imageName}`;
         return `
-            <div class="info-panel ally-section">
-                <div class="ally-details-content">
-                    <img src="${imagePath}" alt="${ally.name} Front Image" class="ally-image">
-                    <h2>${ally.name}</h2>
-                    <div class="ally-buttons">
-                        <button class="party-button" data-ally-index="${index}">Party</button>
-                        <button class="info-button" data-ally-index="${index}">Info</button>
+            <div class="info-panel ${sectionType}-section">
+                <div class="${sectionType}-details-content">
+                    <img src="${imagePath}" alt="${item.name} Front Image" class="${sectionType}-image">
+                    <h2>${item.name}</h2>
+                    <div class="${sectionType}-buttons">
+                        <button class="${sectionType === 'ally' ? 'party' : 'battle'}-button" data-${sectionType}-index="${index}">${sectionType === 'ally' ? 'Party' : 'Battle'}</button>
                     </div>
                 </div>
-                <div class="ally-expanded-info">
-                    <p class="ally-stats">
-                        Level: ${ally.level}<br>
-                        Attack: ${ally.attack}<br>
-                        Health: ${ally.health}<br>
-                        SkillName: ${ally.skillname}<br>
-                        SkillStatus: ${ally.skillstatus}<br>
-                        SkillCount: ${ally.skillcount}<br>
-                        SkillHits: ${ally.skillhits}
-                    </p>
+                <div class="${sectionType}-expanded-info">
+                    <h2>${item.name} Details</h2>
+                    <div class="${sectionType}-stats">
+                        <div class="stat-row"><span class="stat-label">Level:</span> <span class="stat-value">${item.level}</span></div>
+                        <div class="stat-row"><span class="stat-label">Attack:</span> <span class="stat-value">${item.attack}</span></div>
+                        <div class="stat-row"><span class="stat-label">Health:</span> <span class="stat-value">${item.health}</span></div>
+                        <div class="stat-row"><span class="stat-label">Skill:</span> <span class="stat-value">${item.skillname}</span></div>
+                        <div class="stat-row"><span class="stat-label">Skill Status:</span> <span class="stat-value">${item.skillstatus}</span></div>
+                        <div class="stat-row"><span class="stat-label">Skill Count:</span> <span class="stat-value">${item.skillcount}</span></div>
+                        <div class="stat-row"><span class="stat-label">Skill Hits:</span> <span class="stat-value">${item.skillhits}</span></div>
+                    </div>
                 </div>
             </div>
         `;
     }).join('');
+}
+export function loadAllies(allies){
+    const leftUI = document.getElementById("leftUI");
     leftUI.innerHTML = `
     <h1>Allies</h1>
     <div class="ally-items-container">
-        ${allySections}
+        ${createSectionHTML('ally', allies)}
     </div>
     `;
-    const infoButtons = document.querySelectorAll('.info-button');
-    infoButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const infoPanel = this.closest('.ally-section').querySelector('.ally-expanded-info');
-            infoPanel.classList.toggle('visible');
-        });
-    });
+    setupInfoPanels('.ally-section', '.ally-expanded-info');
 }
 export function loadEnemies(enemies){
     const leftUI = document.getElementById("leftUI");
-    const enemySections = enemies.map((enemy, index) => {
-        const imageName = `${enemy.name}.svg`;
+    leftUI.innerHTML = `
+    <h1>Enemies</h1>
+    <div class="enemy-items-container">
+        ${createSectionHTML('enemy', enemies)}
+    </div>
+    `;
+    setupBattleButtons(enemies);
+    setupInfoPanels('.enemy-section', '.enemy-expanded-info');
+}
+function setupInfoPanels(sectionSelector, panelSelector) {
+    document.querySelectorAll(sectionSelector).forEach(section => {
+        section.addEventListener('click', function(event) {
+            if (event.target === this || this.contains(event.target) && !event.target.closest('button')) {
+                const infoPanel = this.querySelector(panelSelector);
+                const isCurrentlyVisible = infoPanel.classList.contains('visible');
+                toggleInfoPanel(this, infoPanel, !isCurrentlyVisible);
+            }
+        });
+    });
+    function toggleInfoPanel(parentSection, infoPanel, shouldShow) {
+        if (shouldShow) {
+            infoPanel.classList.add('visible');
+        } else {
+            infoPanel.classList.remove('visible');
+            const detailsContent = parentSection.querySelector('.ally-details-content, .enemy-details-content, .recruitment-details-content');
+            if (detailsContent) {
+                detailsContent.style.display = 'flex';
+            }
+        }
+    }
+}
+export function loadRecruitments(recruitments){
+    const leftUI = document.getElementById("leftUI");
+    const recruitmentSections = recruitments.map((recruitment, index) => {
+        const imageName = `${recruitment.name}.svg`;
         const imagePath = `../assets/images/${imageName}`;
         return `
-            <div class="info-panel enemy-section">
-                <div class="enemy-details-content">
-                    <img src="${imagePath}" alt="${enemy.name} Front Image" class="enemy-image">
-                    <h2>${enemy.name}</h2>
-                    <div class="enemy-buttons">
-                        <button class="battle-button" data-enemy-index="${index}">Battle</button>
-                        <button class="info-button" data-enemy-index="${index}">Info</button>
+            <div class="info-panel recruitment-section">
+                <div class="recruitment-details-content">
+                    <img src="${imagePath}" alt="${recruitment.name} Front Image" class="recruitment-image">
+                    <h2>${recruitment.name}</h2>
+                    <div class="recruitment-buttons">
+                        <button class="recruit-button" data-recruitment-index="${index}">Recruit</button>
                     </div>
-                </div>
-                <div class="enemy-expanded-info">
-                    <p class="enemy-stats">
-                        Level: ${enemy.level}<br>
-                        Attack: ${enemy.attack}<br>
-                        Health: ${enemy.health}<br>
-                        SkillName: ${enemy.skillname}<br>
-                        SkillStatus: ${enemy.skillstatus}<br>
-                        SkillCount: ${enemy.skillcount}<br>
-                        SkillHits: ${enemy.skillhits}
-                    </p>
                 </div>
             </div>
         `;
     }).join('');
     leftUI.innerHTML = `
-    <h1>Enemies</h1>
-    <div class="enemy-items-container">
-        ${enemySections}
+    <h1>Recruitments</h1>
+    <div class="recruitment-items-container">
+        ${recruitmentSections}
     </div>
     `;
-    const battleButtons = document.querySelectorAll('.battle-button');
-    battleButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const enemyIndex = parseInt(this.getAttribute('data-enemy-index'));
-            import('./initialize.js').then(module => {
-                module.initialize(
-                    localStorage.getItem('username'), 
-                    localStorage.getItem('hashedPassword')
-                ).then(data => {
-                    if (data && data.allies && data.allies.length > 0) {
-                        const firstAlly = data.allies[0];
-                        const selectedEnemy = enemies[enemyIndex];
-                        startBattle(firstAlly, selectedEnemy);
-                    } else {
-                        console.error("No allies found!");
+    const accountButton = document.getElementById("accountButton");
+    if (accountButton) {
+        accountButton.addEventListener("click", () => {
+            const username = localStorage.getItem('username');
+            const hashedPassword = localStorage.getItem('hashedPassword');            
+            fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadaccount", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    username, 
+                    password: hashedPassword,
+                    passwordIsHashed: true 
+                })
+            })
+            .then(response => response.json())
+            .then(accountData => {
+                import('./account.js').then(accountModule => {
+                    const Account = accountModule.default;
+                    const account = new Account(accountData.Level, accountData.Marbles);
+                    loadAccount(account);
+                    try {
+                        sessionStorage.setItem('accountData', JSON.stringify({
+                            level: account.level,
+                            marbles: account.marbles
+                        }));
+                    } catch (e) {
+                        console.error("Failed to store account data:", e);
                     }
                 });
+            })
+            .catch(error => {
+                console.error("Error refreshing account data:", error);
+                alert("Failed to refresh account data. Please try again.");
             });
         });
-    });    
-    const infoButtons = document.querySelectorAll('.info-button');
-    infoButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const infoPanel = this.closest('.enemy-section').querySelector('.enemy-expanded-info');
-            infoPanel.classList.toggle('visible');
-        });
-    });
-}
-export function loadRecruitments(recruitments){
-    const leftUI = document.getElementById("leftUI");
-    leftUI.innerHTML = `
-    `;
+    }
+    setupRecruitButtons(recruitments);
 }

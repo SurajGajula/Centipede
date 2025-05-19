@@ -76,15 +76,18 @@
     align-items: stretch;
 }
 .ally-items-container,
-.enemy-items-container {
+.enemy-items-container,
+.recruitment-items-container {
     display: flex;
     flex-wrap: wrap;
     gap: 30px;
     justify-content: flex-start;
     padding: 10px;
+    position: relative;
 }
 .info-panel.ally-section,
-.info-panel.enemy-section {
+.info-panel.enemy-section,
+.info-panel.recruitment-section {
     flex: 0 0 calc(33.333% - 30px);
     max-width: calc(33.333% - 30px);
     margin: 0 0 30px 0;
@@ -97,15 +100,18 @@
     border-radius: 6px;
     height: 650px;
     perspective: 1000px;
+    cursor: pointer;
 }
 .info-panel.ally-section:hover,
-.info-panel.enemy-section:hover {
+.info-panel.enemy-section:hover,
+.info-panel.recruitment-section:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(0,0,0,0.4);
     background-color: #252525;
 }
 .ally-details-content,
-.enemy-details-content {
+.enemy-details-content,
+.recruitment-details-content {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -115,7 +121,8 @@
     height: 100%;
 }
 .ally-image,
-.enemy-image {
+.enemy-image,
+.recruitment-image {
     max-width: 85%;
     height: auto;
     margin-bottom: 20px;
@@ -125,52 +132,68 @@
     object-fit: contain;
 }
 .info-panel:hover .ally-image,
-.info-panel:hover .enemy-image {
+.info-panel:hover .enemy-image,
+.info-panel:hover .recruitment-image {
     transform: scale(1.05);
 }
 .ally-stats-container,
-.enemy-stats-container {
+.enemy-stats-container,
+.recruitment-stats-container {
     width: 100%;
 }
 .ally-stats,
-.enemy-stats {
+.enemy-stats,
+.recruitment-stats {
     margin: 0;
-    font-size: 1.2em;
-    line-height: 2;
+    font-size: 1.1em;
+    line-height: 1.6;
+    color: #ffffff;
+    text-align: left;
+}
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.stat-label {
+    font-weight: bold;
+    color: #aaaaaa;
+}
+.stat-value {
     color: #ffffff;
 }
 .ally-expanded-info,
-.enemy-expanded-info {
+.enemy-expanded-info,
+.recruitment-expanded-info {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     padding: 35px;
-    background-color: #404040;
+    background-color: #303030;
     border-radius: 6px;
-    border-left: 3px solid #909090;
-    box-shadow: 5px 0 25px rgba(0,0,0,0.25);
-    z-index: 1;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.25);
+    z-index: 3;
     box-sizing: border-box;
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
-    transform: translateX(92%) rotateY(-5deg);
-    transform-origin: left center;
+    transition: opacity 0.3s ease;
     display: flex;
     flex-direction: column;
     justify-content: center;
     opacity: 0;
     pointer-events: none;
+    overflow: auto;
 }
 .ally-expanded-info.visible,
-.enemy-expanded-info.visible {
-    transform: translateX(98%) rotateY(0);
-    box-shadow: 8px 0 30px rgba(0,0,0,0.5);
+.enemy-expanded-info.visible,
+.recruitment-expanded-info.visible {
     opacity: 1;
     pointer-events: auto;
 }
 .ally-expanded-info::before,
-.enemy-expanded-info::before {
+.enemy-expanded-info::before,
+.recruitment-expanded-info::before {
     content: '';
     position: absolute;
     top: 15px;
@@ -180,7 +203,8 @@
     background-color: #909090;
 }
 .ally-expanded-info::after,
-.enemy-expanded-info::after {
+.enemy-expanded-info::after,
+.recruitment-expanded-info::after {
     content: '';
     position: absolute;
     bottom: 15px;
@@ -190,8 +214,69 @@
     background-color: #909090;
 }
 .ally-expanded-info p,
-.enemy-expanded-info p {
+.enemy-expanded-info p,
+.recruitment-expanded-info p {
     margin: 0;
     color: #f5f5f5;
     line-height: 1.6;
+}
+.info-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    background-color: rgba(0,0,0,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #ffffff;
+    font-size: 16px;
+    z-index: 4;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+.info-close::before,
+.info-close::after {
+    content: '';
+    position: absolute;
+    width: 15px;
+    height: 2px;
+    background-color: white;
+}
+.info-close::before {
+    transform: rotate(45deg);
+}
+.info-close::after {
+    transform: rotate(-45deg);
+}
+.info-close.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+.info-panel-placeholder {
+    display: none;
+}
+.ally-buttons,
+.enemy-buttons,
+.recruitment-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    z-index: 5;
+}
+.ally-section::after,
+.enemy-section::after {
+    content: '';
+}
+.ally-expanded-info h2,
+.enemy-expanded-info h2 {
+    color: #ffffff;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
 }

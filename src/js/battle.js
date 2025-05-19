@@ -103,3 +103,25 @@ function updateHealthBars(state) {
         enemyHealthBar.style.width = `${enemyHealthPercentage}%`;
     }
 }
+export function setupBattleButtons(enemies) {
+    const battleButtons = document.querySelectorAll('.battle-button');
+    battleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const enemyIndex = parseInt(this.getAttribute('data-enemy-index'));
+            import('./initialize.js').then(module => {
+                module.initialize(
+                    localStorage.getItem('username'), 
+                    localStorage.getItem('hashedPassword')
+                ).then(data => {
+                    if (data && data.allies && data.allies.length > 0) {
+                        const firstAlly = data.allies[0];
+                        const selectedEnemy = enemies[enemyIndex];
+                        startBattle(firstAlly, selectedEnemy);
+                    } else {
+                        console.error("No allies found!");
+                    }
+                });
+            });
+        });
+    });
+}

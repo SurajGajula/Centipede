@@ -121,12 +121,34 @@ class State {
         const username = localStorage.getItem('username');
         const hashedPassword = localStorage.getItem('hashedPassword');        
         try {
+            localStorage.removeItem('currentMarbles');
+            showLoadingScreen("Refreshing game data...");
             const module = await import('./initialize.js');
             const data = await module.initialize(username, hashedPassword);
+            hideLoadingScreen();            
             if (data) {
                 const { account, allies, enemies, recruitments } = data;
+                try {
+                    sessionStorage.setItem('accountData', JSON.stringify({
+                        level: account.level,
+                        marbles: account.marbles
+                    }));
+                } catch (e) {
+                    console.error("Failed to store account data in session storage:", e);
+                }
                 document.getElementById("accountButton").addEventListener("click", () => {
-                    import('./menu.js').then(menuModule => menuModule.loadAccount(account));
+                    import('./menu.js').then(menuModule => {
+                        try {
+                            const storedAccount = JSON.parse(sessionStorage.getItem('accountData'));
+                            if (storedAccount) {
+                                account.level = storedAccount.level;
+                                account.marbles = storedAccount.marbles;
+                            }
+                        } catch (e) {
+                            console.error("Failed to retrieve stored account data:", e);
+                        }
+                        menuModule.loadAccount(account);
+                    });
                 });                
                 document.getElementById("alliesButton").addEventListener("click", () => {
                     import('./menu.js').then(menuModule => menuModule.loadAllies(allies));
@@ -139,7 +161,6 @@ class State {
                 });
                 const menuModule = await import('./menu.js');
                 menuModule.loadEnemies(enemies);
-                hideLoadingScreen();
             } else {
                 console.error("Failed to reload game data after battle");
                 hideLoadingScreen();
