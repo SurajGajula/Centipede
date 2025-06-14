@@ -280,3 +280,36 @@
     border-bottom: 2px solid rgba(255, 255, 255, 0.2);
     text-align: center;
 }
+.ally-section.in-party {
+    border: 2px solid #4CAF50;
+    background-color: rgba(76, 175, 80, 0.1);
+}
+.party-position {
+    background-color: #4CAF50;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    margin: 5px 0;
+    display: inline-block;
+}
+.party-button {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.party-button:hover {
+    background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+.party-button:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}

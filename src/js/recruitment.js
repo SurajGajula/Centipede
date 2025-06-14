@@ -11,7 +11,6 @@ export async function pullRecruitment(characterName) {
         const hashedPassword = localStorage.getItem('hashedPassword');
         if (!username || !hashedPassword) throw new Error("User credentials not found. Please log in again.");        
         showLoadingScreen("Recruiting ally...");
-        
         await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 500));        
         const response = await fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/pullrecruitment", {
             method: 'POST',
@@ -50,7 +49,7 @@ export function showRecruitmentResults(results) {
                 const result = resultsArray[currentIndex];                
                 if (result.type === "marbles") {
                     const resultLabel = document.createElement('div');
-                    resultLabel.className = 'result-label';
+                    resultLabel.className = 'result-label marbles-label';
                     resultLabel.textContent = `+${result.amount} Marbles`;
                     resultDisplay.appendChild(resultLabel);
                 } else if (result.type === "character") {
@@ -60,12 +59,22 @@ export function showRecruitmentResults(results) {
                     resultDisplay.appendChild(characterImage);                    
                     const resultLabel = document.createElement('div');
                     resultLabel.className = 'result-label';
+                    if (result.success === false) {
+                        resultLabel.classList.add('failed');
+                    }
                     resultLabel.textContent = result.name + (result.success === false ? ' (Failed)' : '');
                     resultDisplay.appendChild(resultLabel);
                 }
+                setTimeout(() => {
+                    resultDisplay.classList.add('visible');
+                }, 50);
                 resultDisplay.onclick = () => {
-                    currentIndex++;
-                    currentIndex < resultsArray.length ? displayResult() : showSummary();
+                    resultDisplay.classList.remove('visible');
+                    resultDisplay.classList.add('fade-out');
+                    setTimeout(() => {
+                        currentIndex++;
+                        currentIndex < resultsArray.length ? displayResult() : showSummary();
+                    }, 300);
                 };
             }
         }   
@@ -141,23 +150,13 @@ export function showRecruitmentResults(results) {
             const resultsGrid = document.createElement('div');
             resultsGrid.className = 'recruitment-results-grid';
             resultsContainer.appendChild(resultsGrid);
-            const instructionText = document.createElement('div');
-            instructionText.className = 'recruitment-instruction';
-            instructionText.textContent = 'Click any card to continue';
-            instructionText.style.width = '100%';
-            instructionText.style.textAlign = 'center';
-            instructionText.style.marginBottom = '15px';
-            instructionText.style.color = '#aaaaaa';
-            resultsContainer.insertBefore(instructionText, resultsGrid);
             resultsArray.forEach(result => {
                 const resultCard = document.createElement('div');
                 resultCard.className = 'result-card';
                 if (result.type === "marbles") {
                     const cardLabel = document.createElement('div');
-                    cardLabel.className = 'card-label';
+                    cardLabel.className = 'card-label marbles-label';
                     cardLabel.textContent = `+${result.amount} Marbles`;
-                    cardLabel.style.fontSize = '1.2em';
-                    cardLabel.style.marginTop = '35px';
                     resultCard.appendChild(cardLabel);
                 } else {
                     const cardImage = document.createElement('img');
@@ -166,11 +165,10 @@ export function showRecruitmentResults(results) {
                     resultCard.appendChild(cardImage);                
                     const cardLabel = document.createElement('div');
                     cardLabel.className = 'card-label';
-                    cardLabel.textContent = result.name;
                     if (result.success === false) {
-                        cardLabel.textContent += ' (Failed)';
-                        cardLabel.style.color = '#ff5555';
+                        cardLabel.classList.add('failed');
                     }
+                    cardLabel.textContent = result.name + (result.success === false ? ' (Failed)' : '');
                     resultCard.appendChild(cardLabel);
                 }
                 resultCard.addEventListener('click', finishRecruitment);

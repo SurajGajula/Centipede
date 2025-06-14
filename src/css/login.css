@@ -7,8 +7,65 @@
     width: 100vw;
     padding: 20px;
     background-color: #121212;
+    position: relative;
+    overflow: hidden;
 }
+
+#login-container::before,
+#login-container::after {
+    content: '';
+    position: absolute;
+    width: 50%;
+    height: 100%;
+    top: 0;
+    z-index: 0;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    will-change: transform;
+}
+
+#login-container::before {
+    left: 0;
+    background-image: url('/assets/images/BG1.svg');
+    transform: translateX(-100%) translateY(100px);
+    animation: slideInLeft 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+#login-container::after {
+    right: 0;
+    background-image: url('/assets/images/BG2.svg');
+    transform: translateX(100%) translateY(-100px);
+    animation: slideInRight 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideInLeft {
+    0% {
+        transform: translateX(-100%) translateY(100px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0) translateY(100px);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInRight {
+    0% {
+        transform: translateX(100%) translateY(-100px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0) translateY(-100px);
+        opacity: 1;
+    }
+}
+
 #game-title {
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    animation: fadeIn 0.8s ease-out 1.5s forwards;
     color: #ffffff;
     font-size: 3.5em;
     text-transform: uppercase;
@@ -16,7 +73,12 @@
     margin-bottom: 30px;
     text-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
 }
+
 #login-form-wrapper {
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    animation: fadeIn 0.8s ease-out 1.8s forwards;
     background: linear-gradient(135deg, #303030 0%, #202020 100%);
     padding: 30px;
     border-radius: 4px;
@@ -25,6 +87,18 @@
     max-width: 400px;
     width: 100%;
 }
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 #login-form h2 {
     margin-bottom: 20px;
     color: #ffffff;
@@ -32,10 +106,12 @@
     letter-spacing: 1px;
     font-size: 1.5em;
 }
+
 #login-form div {
     margin-bottom: 15px;
     text-align: left;
 }
+
 #login-form label {
     display: block;
     margin-bottom: 5px;
@@ -43,6 +119,7 @@
     font-weight: bold;
     letter-spacing: 0.5px;
 }
+
 #login-form input[type="text"],
 #login-form input[type="password"] {
     width: 100%;
@@ -53,12 +130,14 @@
     color: #ffffff;
     transition: all 0.3s ease;
 }
+
 #login-form input[type="text"]:focus,
 #login-form input[type="password"]:focus {
     border-color: #606060;
     outline: none;
     box-shadow: 0 0 5px rgba(64, 64, 64, 0.5);
 }
+
 #login-form button {
     width: 100%;
     padding: 12px 20px;
@@ -77,15 +156,18 @@
     box-shadow: 0 3px 5px rgba(0,0,0,0.2);
     margin-top: 15px;
 }
+
 #login-form button:hover {
     background: linear-gradient(135deg, #909090 0%, #606060 100%);
     box-shadow: 0 5px 15px rgba(96, 96, 96, 0.4);
     transform: translateY(-2px);
 }
+
 #login-form button:active {
     transform: translateY(1px);
     box-shadow: 0 2px 3px rgba(0,0,0,0.1);
 }
+
 #login-form button::after {
     content: '';
     position: absolute;
@@ -97,9 +179,11 @@
     transform: skewX(-20deg);
     transition: all 0.5s ease;
 }
+
 #login-form button:hover::after {
     left: 100%;
 }
+
 .error-message {
     color: #ff6b6b;
     font-size: 0.9em;

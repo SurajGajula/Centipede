@@ -106,22 +106,49 @@ function updateHealthBars(state) {
 export function setupBattleButtons(enemies) {
     const battleButtons = document.querySelectorAll('.battle-button');
     battleButtons.forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', async function() {
             const enemyIndex = parseInt(this.getAttribute('data-enemy-index'));
-            import('./initialize.js').then(module => {
-                module.initialize(
-                    localStorage.getItem('username'), 
-                    localStorage.getItem('hashedPassword')
-                ).then(data => {
-                    if (data && data.allies && data.allies.length > 0) {
-                        const firstAlly = data.allies[0];
-                        const selectedEnemy = enemies[enemyIndex];
-                        startBattle(firstAlly, selectedEnemy);
-                    } else {
-                        console.error("No allies found!");
-                    }
+            try {
+                const username = localStorage.getItem('username');
+                const hashedPassword = localStorage.getItem('hashedPassword');
+                if (!username || !hashedPassword) {
+                    throw new Error("User credentials not found");
+                }
+                showLoadingScreen("Loading party...");
+                const partyResponse = await fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadparty", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username,
+                        password: hashedPassword,
+                        passwordIsHashed: true
+                    })
                 });
-            });
+                const partyData = await partyResponse.json();
+                if (partyResponse.status >= 400 || partyData.statusCode >= 400) {
+                    throw new Error(partyData.message || "Failed to load party");
+                }
+                const party = partyData.party || [];
+                if (party.length === 0) {
+                    throw new Error("No party members found");
+                }
+                const module = await import('./initialize.js');
+                const data = await module.initialize(username, hashedPassword);
+                if (!data || !data.allies || data.allies.length === 0) {
+                    throw new Error("No allies found");
+                }
+                const selectedEnemy = enemies[enemyIndex];
+                const firstPartyMember = data.allies.find(ally => ally.name === party[0]);
+                if (!firstPartyMember) {
+                    throw new Error("Party member not found in allies list");
+                }
+                startBattle(firstPartyMember, selectedEnemy);
+            } catch (error) {
+                console.error("Error starting battle:", error);
+                alert(error.message || "Failed to start battle");
+            } finally {
+                hideLoadingScreen();
+            }
         });
     });
 }

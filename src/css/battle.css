@@ -66,6 +66,7 @@
     padding: 20px;
     padding-bottom: 30px;
     z-index: 2;
+    position: relative;
 }
 .battle-ground {
     background-color: #444;
@@ -75,7 +76,7 @@
     bottom: 0;
     z-index: 1;
 }
-.battle-ally, .battle-enemy {
+.battle-ally {
     height: 200px;
     width: 150px;
     display: flex;
@@ -84,9 +85,24 @@
     margin-bottom: 0;
     position: relative;
 }
-.battle-ally img, .battle-enemy img {
+.battle-enemy {
+    height: 800px;
+    width: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 0;
+    position: absolute;
+    bottom: -180px;
+    right: 20px;
+}
+.battle-ally img {
     max-height: 180px;
     max-width: 140px;
+}
+.battle-enemy img {
+    max-height: 720px;
+    max-width: 560px;
 }
 .notification-container {
     position: absolute;

@@ -13,33 +13,50 @@
     color: #f0f0f0;
 }
 .recruitment-result-display {
-    width: 300px;
-    height: 350px;
+    width: 100%;
+    max-width: 1400px;
+    aspect-ratio: 5/3;
     margin: 0 auto;
     background-color: #303030;
-    border-radius: 10px;
+    border-radius: 6px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
     position: relative;
+    opacity: 0;
+    transform: scale(0.95);
 }
-.recruitment-result-display:hover {
-    transform: scale(1.03);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+.recruitment-result-display.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+.recruitment-result-display.fade-out {
+    opacity: 0;
+    transform: scale(1.05);
 }
 .recruitment-result-display img {
-    max-width: 250px;
-    max-height: 250px;
+    max-width: 85%;
+    max-height: 80%;
+    object-fit: contain;
+    filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
+    transition: transform 0.3s ease;
+}
+.recruitment-result-display:hover img {
+    transform: scale(1.05);
 }
 .recruitment-result-display .result-label {
     margin-top: 20px;
     font-size: 1.4em;
     font-weight: bold;
     color: #f0f0f0;
+    transition: color 0.3s ease;
+}
+.recruitment-result-display.failed .result-label {
+    color: #ff5555;
 }
 .recruitment-continue-button {
     padding: 12px 30px;
@@ -59,10 +76,13 @@
 }
 .recruitment-results-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 20px;
     width: 100%;
-    margin-bottom: 20px;
+    max-width: 1400px;
+    margin: 0 auto 20px;
+    padding: 20px;
 }
 .result-card {
     display: flex;
@@ -70,27 +90,58 @@
     align-items: center;
     justify-content: center;
     background-color: #2a2a2a;
-    border-radius: 5px;
+    border-radius: 6px;
     padding: 15px;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
-    min-height: 150px;
-    min-width: 120px;
+    aspect-ratio: 3/4;
+    min-height: 200px;
+    opacity: 0;
+    animation: cardFadeIn 0.5s ease-out forwards;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
+@keyframes cardFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.result-card:nth-child(1) { animation-delay: 0.1s; }
+.result-card:nth-child(2) { animation-delay: 0.2s; }
+.result-card:nth-child(3) { animation-delay: 0.3s; }
+.result-card:nth-child(4) { animation-delay: 0.4s; }
+.result-card:nth-child(5) { animation-delay: 0.5s; }
+.result-card:nth-child(6) { animation-delay: 0.6s; }
+.result-card:nth-child(7) { animation-delay: 0.7s; }
+.result-card:nth-child(8) { animation-delay: 0.8s; }
+.result-card:nth-child(9) { animation-delay: 0.9s; }
+.result-card:nth-child(10) { animation-delay: 1s; }
 .result-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
     background-color: #333333;
 }
 .result-card img {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 10px;
+    width: 85%;
+    height: auto;
+    margin-bottom: 15px;
+    filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
+    transition: transform 0.3s ease;
+    max-height: 75%;
+    object-fit: contain;
+}
+.result-card:hover img {
+    transform: scale(1.05);
 }
 .card-label {
-    font-size: 0.9em;
+    font-size: 1.1em;
     text-align: center;
     color: #ffffff;
+    margin-top: 10px;
 }
 .summary-info {
     margin: 20px 0;
@@ -137,4 +188,8 @@
 }
 .marble-summary p {
     margin: 5px 0;
+}
+.marbles-label {
+    font-size: 1.2em;
+    margin-top: 35px;
 } 
