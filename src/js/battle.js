@@ -2,17 +2,23 @@ import State from "./state.js";
 import { initializeStatusDisplay, updateStatusDisplay } from "./status.js";
 import { showLoadingScreen, hideLoadingScreen } from "./loading.js";
 let actionInProgress = false;
+
 export async function startBattle(ally, enemy) {
+    // Initialize battle with party member buttons when multiple members are present
     showLoadingScreen("Preparing Battle");
     actionInProgress = false;
     await new Promise(resolve => setTimeout(resolve, 100));
+    
     const state = new State(ally, enemy);
     const leftUI = document.getElementById("leftUI");
     const rightUI = document.getElementById("rightUI");
+    
     const allyImagePath = `../assets/images/${ally.name}.svg`;
     const enemyImagePath = `../assets/images/${enemy.name}.svg`;
+    
     ally.clearStatuses();
     enemy.clearStatuses();
+    
     leftUI.innerHTML = `
         <div class="battle-container">
             <div class="health-bars">
@@ -40,11 +46,54 @@ export async function startBattle(ally, enemy) {
             <div class="battle-ground"></div>
         </div>
     `;
-    rightUI.innerHTML = `
-        <button id="skill-button">${ally.skillname.toUpperCase()}</button>
-    `;
+    
+    // Load party data to get all party members
+    let partyMembers = [];
+    try {
+        const username = localStorage.getItem('username');
+        const hashedPassword = localStorage.getItem('hashedPassword');
+        
+        if (username && hashedPassword) {
+            const partyResponse = await fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadparty", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username,
+                    password: hashedPassword,
+                    passwordIsHashed: true
+                })
+            });
+            
+            const partyData = await partyResponse.json();
+            if (partyResponse.status < 400 && (!partyData.statusCode || partyData.statusCode < 400)) {
+                partyMembers = partyData.party || [];
+                console.log(`Loaded party members: ${partyMembers.join(', ')}`);
+            }
+        }
+    } catch (error) {
+        console.error("Error loading party data:", error);
+        partyMembers = [ally.name]; // Fallback to current ally only
+    }
+    
+    // Create battle menu with skill button and party member buttons
+    let rightUIContent = `<button id="skill-button">${ally.skillname.toUpperCase()}</button>`;
+    
+    if (partyMembers.length > 1) {
+        console.log(`Creating buttons for ${partyMembers.length} party members`);
+        rightUIContent += `<div class="party-members-section">`;
+        partyMembers.forEach((memberName, index) => {
+            rightUIContent += `<button class="party-member-button" data-member-name="${memberName}" data-member-index="${index}">${memberName.toUpperCase()}</button>`;
+        });
+        rightUIContent += `</div>`;
+    } else {
+        console.log(`Only ${partyMembers.length} party member(s), not creating additional buttons`);
+    }
+    
+    rightUI.innerHTML = rightUIContent;
+    
     initializeStatusDisplay();
     updateStatusDisplay(ally, enemy);
+    
     const images = document.querySelectorAll('.battle-container img');
     await Promise.all(Array.from(images).map(img => {
         if (img.complete) return Promise.resolve();
@@ -53,14 +102,39 @@ export async function startBattle(ally, enemy) {
             img.onerror = resolve;
         });
     }));
+    
     document.getElementById("skill-button").addEventListener("click", () => {
         if (!actionInProgress) {
             useSkill(state);
         }
     });
+    
+    // Add event listeners for party member buttons (placeholder functionality)
+    const partyMemberButtons = document.querySelectorAll('.party-member-button');
+    partyMemberButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            if (!actionInProgress) {
+                const memberName = button.getAttribute('data-member-name');
+                const memberIndex = button.getAttribute('data-member-index');
+                console.log(`Party member ${memberName} (index ${memberIndex}) button clicked - functionality not yet implemented`);
+                
+                // Show a visual indication that the button was clicked
+                button.style.opacity = "0.6";
+                setTimeout(() => {
+                    button.style.opacity = "1";
+                }, 200);
+                
+                // Placeholder for future functionality
+                // This is where you would implement switching to the selected party member
+                // or using that party member's skill/ability
+            }
+        });
+    });
+    
     hideLoadingScreen();
     return state;
 }
+
 async function useSkill(state) {
     try {
         actionInProgress = true;
@@ -93,6 +167,7 @@ async function useSkill(state) {
         }
     }
 }
+
 function updateHealthBars(state) {
     const allyHealthBar = document.querySelector('.ally-health-bar');
     const enemyHealthBar = document.querySelector('.enemy-health-bar');
@@ -103,6 +178,7 @@ function updateHealthBars(state) {
         enemyHealthBar.style.width = `${enemyHealthPercentage}%`;
     }
 }
+
 export function setupBattleButtons(enemies) {
     const battleButtons = document.querySelectorAll('.battle-button');
     battleButtons.forEach(button => {
