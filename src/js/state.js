@@ -1,6 +1,74 @@
 import { updateStatusDisplay } from "./status.js";
 import { showLoadingScreen, hideLoadingScreen } from "./loading.js";
 import { showStatusNotification, showDamageNotification } from "./notifications.js";
+import { displayAllies, displayEnemies } from "./menu.js";
+
+export async function showAllies() {
+    try {
+        const username = localStorage.getItem('username');
+        const hashedPassword = localStorage.getItem('hashedPassword');
+        
+        if (!username || !hashedPassword) {
+            throw new Error("User credentials not found");
+        }
+
+        showLoadingScreen("Loading allies...");
+        const response = await fetch("/api/loadallies", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username,
+                password: hashedPassword,
+                passwordIsHashed: true
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to load allies: ${response.status}`);
+        }
+
+        const allies = await response.json();
+        hideLoadingScreen();
+        displayAllies(allies);
+    } catch (error) {
+        console.error("Error loading allies:", error);
+        hideLoadingScreen();
+    }
+}
+
+export async function showEnemies() {
+    try {
+        const username = localStorage.getItem('username');
+        const hashedPassword = localStorage.getItem('hashedPassword');
+        
+        if (!username || !hashedPassword) {
+            throw new Error("User credentials not found");
+        }
+
+        showLoadingScreen("Loading enemies...");
+        const response = await fetch("/api/loadenemies", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username,
+                password: hashedPassword,
+                passwordIsHashed: true
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to load enemies: ${response.status}`);
+        }
+
+        const enemies = await response.json();
+        hideLoadingScreen();
+        displayEnemies(enemies);
+    } catch (error) {
+        console.error("Error loading enemies:", error);
+        hideLoadingScreen();
+    }
+}
+
 class State {
     constructor(ally, enemy) {
         this.ally = ally;
@@ -55,45 +123,23 @@ class State {
         });
     }
     checkBattleEnd() {
-        if (this.enemy.health <= 0) {
-            this.returnToMenuWithVictory();
+        if (this.ally.health <= 0) {
+            document.getElementById("leftUI").innerHTML = "<h1>You Lost!</h1>";
             return true;
-        } else if (this.ally.health <= 0) {
-            this.returnToMenuWithDefeat();
+        } else if (this.enemy.health <= 0) {
+            this.victory();
             return true;
         }
         return false;
     }
+    async victory() {
+        document.getElementById("leftUI").innerHTML = `
+            <h1>Victory!</h1>
+            <p>You defeated ${this.enemy.name}!</p>
+        `;
+    }
     async returnToMenuWithVictory() {
         showLoadingScreen("Victory!");
-        const username = localStorage.getItem('username');
-        const hashedPassword = localStorage.getItem('hashedPassword');
-        const enemyName = this.enemy.name;
-        try {
-            const response = await fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/defeatenemy", {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    username, 
-                    password: hashedPassword,
-                    enemyname: enemyName,
-                    passwordIsHashed: true 
-                })
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error("Failed to record enemy defeat:", errorData);
-            } else {
-                const data = await response.json();
-                if (data.alreadyDefeated) {
-                    showLoadingScreen(`Victory! (Already Defeated)`);
-                } else {
-                    showLoadingScreen(`Victory! +100 Marbles (Total: ${data.marbles})`);
-                }
-            }
-        } catch (error) {
-            console.error("Error calling defeatenemy API:", error);
-        }        
         const leftUI = document.getElementById("leftUI");
         const rightUI = document.getElementById("rightUI");
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -130,7 +176,6 @@ class State {
                 const { account, allies, enemies, recruitments } = data;
                 try {
                     sessionStorage.setItem('accountData', JSON.stringify({
-                        level: account.level,
                         marbles: account.marbles
                     }));
                 } catch (e) {
@@ -141,7 +186,6 @@ class State {
                         try {
                             const storedAccount = JSON.parse(sessionStorage.getItem('accountData'));
                             if (storedAccount) {
-                                account.level = storedAccount.level;
                                 account.marbles = storedAccount.marbles;
                             }
                         } catch (e) {
@@ -151,16 +195,16 @@ class State {
                     });
                 });                
                 document.getElementById("alliesButton").addEventListener("click", () => {
-                    import('./menu.js').then(menuModule => menuModule.loadAllies(allies));
+                    import('./menu.js').then(menuModule => menuModule.showAllies(allies));
                 });                
                 document.getElementById("enemiesButton").addEventListener("click", () => {
-                    import('./menu.js').then(menuModule => menuModule.loadEnemies(enemies));
+                    import('./menu.js').then(menuModule => menuModule.showEnemies(enemies));
                 });
                 document.getElementById("recruitButton").addEventListener("click", () => {
-                    import('./menu.js').then(menuModule => menuModule.loadRecruitments(recruitments));
+                    import('./menu.js').then(menuModule => menuModule.displayRecruitments(recruitments));
                 });
                 const menuModule = await import('./menu.js');
-                menuModule.loadEnemies(enemies);
+                menuModule.showEnemies(enemies);
             } else {
                 console.error("Failed to reload game data after battle");
                 hideLoadingScreen();

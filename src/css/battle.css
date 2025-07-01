@@ -86,14 +86,14 @@
     position: relative;
 }
 .battle-enemy {
-    height: 800px;
-    width: 600px;
+    height: 200px;
+    width: 150px;
     display: flex;
     flex-direction: column;
     align-items: center;
     margin-bottom: 0;
     position: absolute;
-    bottom: -180px;
+    bottom: 30px;
     right: 20px;
 }
 .battle-ally img {
@@ -101,8 +101,8 @@
     max-width: 140px;
 }
 .battle-enemy img {
-    max-height: 720px;
-    max-width: 560px;
+    max-height: 180px;
+    max-width: 140px;
 }
 .notification-container {
     position: absolute;

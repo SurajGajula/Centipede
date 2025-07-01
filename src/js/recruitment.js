@@ -1,10 +1,17 @@
 import { showLoadingScreen, hideLoadingScreen } from "./loading.js";
 import { handleApiError } from "./error.js";
+import { getUsername, getPassword } from './account.js';
+import { showMainMenu } from './menu.js';
+import { showError, showSuccess } from './notifications.js';
+
+const MARBLE_COST = 1000;
+
 class Recruitment {
     constructor(name) {
         this.name = name;
     }
 }
+
 export async function pullRecruitment(characterName) {
     try {
         const username = localStorage.getItem('username');
@@ -27,6 +34,7 @@ export async function pullRecruitment(characterName) {
         throw error;
     }
 }
+
 export function showRecruitmentResults(results) {
     return new Promise((resolve) => {
         const leftUI = document.getElementById("leftUI");
@@ -112,11 +120,10 @@ export function showRecruitmentResults(results) {
                 const alliesList = Array.isArray(alliesData) ? alliesData : [];
                 const recruitmentsList = Array.isArray(recruitmentsData) ? recruitmentsData : [];
                 import('./account.js').then(({default: Account}) => {
-                    const account = new Account(accountData.Level, accountData.Marbles);
+                    const account = new Account(accountData.Marbles);
                     
                     try {
                         sessionStorage.setItem('accountData', JSON.stringify({
-                            level: account.level,
                             marbles: account.marbles
                         }));
                     } catch (e) {
@@ -124,15 +131,15 @@ export function showRecruitmentResults(results) {
                     }
                     import('./ally.js').then(({default: Ally}) => {
                         const allies = alliesList.map(ally => 
-                            new Ally(ally.Name, ally.Level, ally.Attack, ally.Health, 
-                                ally.SkillName, ally.SkillStatus, ally.SkillCount, ally.SkillHits));
+                            new Ally(ally.Name, ally.Attack, ally.Health,
+                                    ally.SkillName, ally.SkillStatus, ally.SkillCount, ally.SkillHits));
                         const recruitments = recruitmentsList.map(r => new Recruitment(r.Name));
                         import('./menu.js').then(menuModule => {
                             if (hasCharacterResult) {
-                                menuModule.loadAllies(allies);
+                                menuModule.showAllies(allies);
                             } else {
                                 menuModule.loadAccount(account);
-                                menuModule.loadRecruitments(recruitments);
+                                menuModule.displayRecruitments(recruitments);
                             }
                             resolve();
                         });
@@ -178,6 +185,7 @@ export function showRecruitmentResults(results) {
         displayResult();
     });
 }
+
 function updateAccountInfo(marbleCount) {
     localStorage.setItem('currentMarbles', marbleCount);
     const rightUI = document.getElementById("rightUI");
@@ -188,6 +196,7 @@ function updateAccountInfo(marbleCount) {
         if (marbleDisplay) marbleDisplay.textContent = marbleCount;
     }
 }
+
 export function setupRecruitButtons(recruitments) {
     const recruitButtons = document.querySelectorAll('.recruit-button');
     recruitButtons.forEach(button => {
@@ -205,7 +214,6 @@ export function setupRecruitButtons(recruitments) {
                     localStorage.setItem('currentMarbles', data.currentMarbles);
                     try {
                         const accountData = {
-                            level: 1,
                             marbles: data.currentMarbles
                         };
                         sessionStorage.setItem('accountData', JSON.stringify(accountData));
@@ -223,4 +231,129 @@ export function setupRecruitButtons(recruitments) {
         });
     });
 }
+
 export default Recruitment;
+
+export async function showRecruitment(allyName) {
+    const container = document.getElementById('game-container');
+    container.innerHTML = '';
+
+    const recruitmentDiv = document.createElement('div');
+    recruitmentDiv.className = 'recruitment-container';
+    
+    const card = document.createElement('div');
+    card.className = 'recruitment-card';
+    
+    const title = document.createElement('h2');
+    title.textContent = 'Recruit Ally';
+    card.appendChild(title);
+    
+    const allyNameDisplay = document.createElement('h3');
+    allyNameDisplay.textContent = allyName;
+    card.appendChild(allyNameDisplay);
+    
+    const costInfo = document.createElement('p');
+    costInfo.textContent = `Cost: ${MARBLE_COST} marbles`;
+    card.appendChild(costInfo);
+    
+    const recruitButton = document.createElement('button');
+    recruitButton.textContent = 'Recruit';
+    recruitButton.onclick = async () => {
+        try {
+            const response = await fetch('/api/pullrecruitment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: getUsername(),
+                    password: getPassword(),
+                    passwordIsHashed: true,
+                    characterName: allyName
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                showSuccess(`Successfully recruited ${allyName}!`);
+                showMainMenu();
+            } else {
+                showError(data.message || 'Failed to recruit ally');
+            }
+        } catch (error) {
+            console.error('Error during recruitment:', error);
+            showError('Failed to recruit ally');
+        }
+    };
+    card.appendChild(recruitButton);
+    
+    const backButton = document.createElement('button');
+    backButton.textContent = 'Back';
+    backButton.onclick = () => showMainMenu();
+    card.appendChild(backButton);
+    
+    recruitmentDiv.appendChild(card);
+    container.appendChild(recruitmentDiv);
+}
+
+// Add some basic CSS styles
+const style = document.createElement('style');
+style.textContent = `
+    .recruitment-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        padding: 20px;
+    }
+    
+    .recruitment-card {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 400px;
+        width: 100%;
+    }
+    
+    .recruitment-card h2 {
+        color: #333;
+        margin-bottom: 20px;
+    }
+    
+    .recruitment-card h3 {
+        color: #666;
+        margin-bottom: 15px;
+    }
+    
+    .recruitment-card p {
+        color: #888;
+        margin-bottom: 20px;
+    }
+    
+    .recruitment-card button {
+        background: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+        transition: background 0.3s;
+    }
+    
+    .recruitment-card button:hover {
+        background: #45a049;
+    }
+    
+    .recruitment-card button:last-child {
+        background: #666;
+    }
+    
+    .recruitment-card button:last-child:hover {
+        background: #555;
+    }
+`;
+document.head.appendChild(style);

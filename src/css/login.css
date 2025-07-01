@@ -74,7 +74,7 @@
     text-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
 }
 
-#login-form-wrapper {
+#auth-container {
     position: relative;
     z-index: 1;
     opacity: 0;
@@ -86,6 +86,29 @@
     text-align: center;
     max-width: 400px;
     width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-section {
+    display: none;
+    width: 100%;
+}
+
+.auth-section.active {
+    display: block;
+    animation: slideInForm 0.3s ease-out;
+}
+
+@keyframes slideInForm {
+    0% {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 @keyframes fadeIn {
@@ -99,7 +122,7 @@
     }
 }
 
-#login-form h2 {
+.auth-section h2 {
     margin-bottom: 20px;
     color: #ffffff;
     text-transform: uppercase;
@@ -107,12 +130,12 @@
     font-size: 1.5em;
 }
 
-#login-form div {
+.auth-section div {
     margin-bottom: 15px;
     text-align: left;
 }
 
-#login-form label {
+.auth-section label {
     display: block;
     margin-bottom: 5px;
     color: #e0e0e0;
@@ -120,8 +143,8 @@
     letter-spacing: 0.5px;
 }
 
-#login-form input[type="text"],
-#login-form input[type="password"] {
+.auth-section input[type="text"],
+.auth-section input[type="password"] {
     width: 100%;
     padding: 12px;
     border: 2px solid #404040;
@@ -129,16 +152,17 @@
     background-color: #1a1a1a;
     color: #ffffff;
     transition: all 0.3s ease;
+    box-sizing: border-box;
 }
 
-#login-form input[type="text"]:focus,
-#login-form input[type="password"]:focus {
+.auth-section input[type="text"]:focus,
+.auth-section input[type="password"]:focus {
     border-color: #606060;
     outline: none;
     box-shadow: 0 0 5px rgba(64, 64, 64, 0.5);
 }
 
-#login-form button {
+.auth-section button {
     width: 100%;
     padding: 12px 20px;
     background: linear-gradient(135deg, #606060 0%, #404040 100%);
@@ -157,18 +181,18 @@
     margin-top: 15px;
 }
 
-#login-form button:hover {
+.auth-section button:hover {
     background: linear-gradient(135deg, #909090 0%, #606060 100%);
     box-shadow: 0 5px 15px rgba(96, 96, 96, 0.4);
     transform: translateY(-2px);
 }
 
-#login-form button:active {
+.auth-section button:active {
     transform: translateY(1px);
     box-shadow: 0 2px 3px rgba(0,0,0,0.1);
 }
 
-#login-form button::after {
+.auth-section button::after {
     content: '';
     position: absolute;
     top: 0;
@@ -180,8 +204,26 @@
     transition: all 0.5s ease;
 }
 
-#login-form button:hover::after {
+.auth-section button:hover::after {
     left: 100%;
+}
+
+.switch-form {
+    margin-top: 20px;
+    color: #cccccc;
+    font-size: 0.9em;
+}
+
+.switch-form a {
+    color: #4fc3f7;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.switch-form a:hover {
+    color: #81d4fa;
+    text-decoration: underline;
 }
 
 .error-message {

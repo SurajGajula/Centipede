@@ -1,7 +1,6 @@
 class Ally {
-    constructor(name, level, attack, health, skillname, skillstatus, skillcount, skillhits) {
+    constructor(name, attack, health, skillname, skillstatus, skillcount, skillhits) {
         this.name = name;
-        this.level = level;
         this.attack = attack;
         this.health = health;
         this.skillname = skillname;

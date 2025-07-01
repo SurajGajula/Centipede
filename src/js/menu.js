@@ -2,14 +2,41 @@ import { setupBattleButtons } from './battle.js';
 import { setupRecruitButtons } from './recruitment.js';
 import { showLoadingScreen, hideLoadingScreen } from './loading.js';
 import { handleApiError } from './error.js';
+import Account from './account.js';
+import Ally from './ally.js';
+import { showRecruitment } from './recruitment.js';
+
+function getStoredAccountInfo() {
+    try {
+        const storedAccount = JSON.parse(sessionStorage.getItem('accountData'));
+        if (storedAccount && storedAccount.marbles !== undefined) {
+            const account = new Account(storedAccount.marbles);
+            if (storedAccount.marbles) {
+                account.marbles = storedAccount.marbles;
+            }
+            return account;
+        }
+    } catch (error) {
+        console.error("Error parsing stored account data:", error);
+    }
+    return null;
+}
+
+function updateAccountInfo(marbles) {
+    const accountInfo = document.getElementById("account-info");
+    if (accountInfo) {
+        accountInfo.innerHTML = `
+            <h2>Account Information</h2>
+            <p><strong>Marbles:</strong> ${marbles}</p>
+        `;
+    }
+}
+
 export function loadAccount(account){
     try {
         const storedAccount = JSON.parse(sessionStorage.getItem('accountData'));
         if (storedAccount && storedAccount.marbles !== undefined) {
             account.marbles = storedAccount.marbles;
-            if (storedAccount.level) {
-                account.level = storedAccount.level;
-            }
         }
     } catch (e) {
         console.error("Failed to retrieve session storage account data:", e);
@@ -18,7 +45,6 @@ export function loadAccount(account){
     leftUI.innerHTML = `
     <h1>Account</h1>
     <div class="info-panel account-info">
-    <p><strong>Level:</strong> ${account.level}</p>
     <p><strong>Marbles:</strong> <span class="marble-display">${account.marbles}</span></p>
     <button id="logout-button">Logout</button>
     </div>
@@ -33,6 +59,7 @@ export function loadAccount(account){
         });
     }
 }
+
 function createSectionHTML(sectionType, items, party = []) {
     return items.map((item, index) => {
         const imageName = `${item.name}.svg`;
@@ -59,7 +86,6 @@ function createSectionHTML(sectionType, items, party = []) {
                 <div class="${sectionType}-expanded-info">
                     <h2>${item.name} Details</h2>
                     <div class="${sectionType}-stats">
-                        <div class="stat-row"><span class="stat-label">Level:</span> <span class="stat-value">${item.level}</span></div>
                         <div class="stat-row"><span class="stat-label">Attack:</span> <span class="stat-value">${item.attack}</span></div>
                         <div class="stat-row"><span class="stat-label">Health:</span> <span class="stat-value">${item.health}</span></div>
                         <div class="stat-row"><span class="stat-label">Skill:</span> <span class="stat-value">${item.skillname}</span></div>
@@ -72,68 +98,46 @@ function createSectionHTML(sectionType, items, party = []) {
         `;
     }).join('');
 }
-export async function loadAllies(allies){
-    try {
-        const username = localStorage.getItem('username');
-        const hashedPassword = localStorage.getItem('hashedPassword');
-        if (!username || !hashedPassword) {
-            throw new Error("User credentials not found. Please log in again.");
-        }
-        showLoadingScreen("Loading party...");
-        const response = await fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadparty", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                username,
-                password: hashedPassword,
-                passwordIsHashed: true
-            })
-        });
-        const data = await response.json();
-        if (response.status >= 400 || data.statusCode >= 400) {
-            throw new Error(data.message || "Failed to load party");
-        }
-        hideLoadingScreen();
-        const party = data.party || [];
-        const leftUI = document.getElementById("leftUI");
-        leftUI.innerHTML = `
-        <h1>Allies</h1>
-        <div class="ally-items-container">
-            ${createSectionHTML('ally', allies, party)}
-        </div>
-        `;
-        setupInfoPanels('.ally-section', '.ally-expanded-info');
-        setupPartyButtons(allies);
-    } catch (error) {
-        hideLoadingScreen();
-        handleApiError("Error loading party", error);
-        const leftUI = document.getElementById("leftUI");
-        leftUI.innerHTML = `
-        <h1>Allies</h1>
-        <div class="ally-items-container">
-            ${createSectionHTML('ally', allies, [])}
-        </div>
-        `;
-        setupInfoPanels('.ally-section', '.ally-expanded-info');
-        setupPartyButtons(allies);
-    }
-}
-export function loadEnemies(enemies){
+
+export function displayAllies(allies, party = []) {
     const leftUI = document.getElementById("leftUI");
     leftUI.innerHTML = `
-    <h1>Enemies</h1>
-    <div class="enemy-items-container">
-        ${createSectionHTML('enemy', enemies)}
-    </div>
+        <div class="info-panel">
+            <h2>Your Allies</h2>
+            <div class="ally-items-container">
+                ${createSectionHTML('ally', allies, party)}
+            </div>
+        </div>
     `;
-    setupBattleButtons(enemies);
-    setupInfoPanels('.enemy-section', '.enemy-expanded-info');
+    
+    setupPartyButtons(allies);
+    
+    const allySections = document.querySelectorAll('.ally-section');
+    setupInfoPanels(allySections);
 }
-function setupInfoPanels(sectionSelector, panelSelector) {
-    document.querySelectorAll(sectionSelector).forEach(section => {
+
+export function displayEnemies(enemies) {
+    const leftUI = document.getElementById("leftUI");
+    leftUI.innerHTML = `
+        <div class="info-panel">
+            <h2>Enemies</h2>
+            <div class="enemy-items-container">
+                ${createSectionHTML('enemy', enemies)}
+            </div>
+        </div>
+    `;
+    
+    setupBattleButtons(enemies);
+    
+    const enemySections = document.querySelectorAll('.enemy-section');
+    setupInfoPanels(enemySections);
+}
+
+function setupInfoPanels(sections) {
+    sections.forEach(section => {
         section.addEventListener('click', function(event) {
             if (event.target === this || this.contains(event.target) && !event.target.closest('button')) {
-                const infoPanel = this.querySelector(panelSelector);
+                const infoPanel = this.querySelector('.expanded-info');
                 const isCurrentlyVisible = infoPanel.classList.contains('visible');
                 toggleInfoPanel(this, infoPanel, !isCurrentlyVisible);
             }
@@ -151,7 +155,8 @@ function setupInfoPanels(sectionSelector, panelSelector) {
         }
     }
 }
-export function loadRecruitments(recruitments){
+
+export function displayRecruitments(recruitments) {
     const leftUI = document.getElementById("leftUI");
     const recruitmentSections = recruitments.map((recruitment, index) => {
         const imageName = `${recruitment.name}.svg`;
@@ -192,11 +197,10 @@ export function loadRecruitments(recruitments){
             .then(accountData => {
                 import('./account.js').then(accountModule => {
                     const Account = accountModule.default;
-                    const account = new Account(accountData.Level, accountData.Marbles);
+                    const account = new Account(accountData.Marbles);
                     loadAccount(account);
                     try {
                         sessionStorage.setItem('accountData', JSON.stringify({
-                            level: account.level,
                             marbles: account.marbles
                         }));
                     } catch (e) {
@@ -212,6 +216,7 @@ export function loadRecruitments(recruitments){
     }
     setupRecruitButtons(recruitments);
 }
+
 async function updateParty(characterName) {
     try {
         const username = localStorage.getItem('username');
@@ -242,6 +247,7 @@ async function updateParty(characterName) {
         throw error;
     }
 }
+
 function setupPartyButtons(allies) {
     const partyButtons = document.querySelectorAll('.party-button');
     partyButtons.forEach(button => {
@@ -302,4 +308,118 @@ function setupPartyButtons(allies) {
             }
         });
     });
+}
+
+async function loadAccountFromAPI() {
+    try {
+        const username = localStorage.getItem('username');
+        const hashedPassword = localStorage.getItem('hashedPassword');
+        
+        if (!username || !hashedPassword) {
+            throw new Error("User credentials not found");
+        }
+
+        const response = await fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadaccount", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username,
+                password: hashedPassword,
+                passwordIsHashed: true
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to load account: ${response.status}`);
+        }
+
+        const accountData = await response.json();
+        console.log("Loaded fresh account data from API:", accountData);
+
+        const account = new Account(accountData.Marbles);
+
+        sessionStorage.setItem('accountData', JSON.stringify({
+            marbles: account.marbles
+        }));
+
+        return account;
+    } catch (error) {
+        console.error("Error loading account from API:", error);
+        throw error;
+    }
+}
+
+export async function showMainMenu() {
+    const container = document.getElementById('game-container');
+    container.innerHTML = '';
+
+    const menuDiv = document.createElement('div');
+    menuDiv.className = 'menu-container';
+
+    const title = document.createElement('h1');
+    title.textContent = 'Centipede';
+    menuDiv.appendChild(title);
+
+    const alliesButton = document.createElement('button');
+    alliesButton.textContent = 'Show Allies';
+    alliesButton.onclick = () => displayAllies();
+    menuDiv.appendChild(alliesButton);
+
+    const enemiesButton = document.createElement('button');
+    enemiesButton.textContent = 'Show Enemies';
+    enemiesButton.onclick = () => displayEnemies();
+    menuDiv.appendChild(enemiesButton);
+
+    const recruitButton = document.createElement('button');
+    recruitButton.textContent = 'Recruit';
+    recruitButton.onclick = async () => {
+        try {
+            const recruitments = await loadRecruitments();
+            if (recruitments && recruitments.length > 0) {
+                showRecruitment(recruitments[0].Name);
+            }
+        } catch (error) {
+            console.error('Error loading recruitments:', error);
+        }
+    };
+    menuDiv.appendChild(recruitButton);
+
+    container.appendChild(menuDiv);
+
+    // Add menu styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .menu-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 20px;
+        }
+
+        .menu-container h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .menu-container button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.1em;
+            width: 200px;
+            transition: background 0.3s;
+        }
+
+        .menu-container button:hover {
+            background: #45a049;
+        }
+    `;
+    document.head.appendChild(style);
 }
