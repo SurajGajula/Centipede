@@ -173,3 +173,55 @@
 #skill-button:hover::after {
     left: 100%;
 }
+
+.party-members-section {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.party-member-button {
+    padding: 8px 15px;
+    background: linear-gradient(135deg, #4A6741 0%, #2E4026 100%);
+    color: white;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.85em;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+    width: 100%;
+}
+
+.party-member-button:hover {
+    background: linear-gradient(135deg, #6A8761 0%, #4A6741 100%);
+    box-shadow: 0 5px 15px rgba(74, 103, 65, 0.4);
+    transform: translateY(-2px);
+}
+
+.party-member-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+}
+
+.party-member-button::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.1);
+    transform: skewX(-20deg);
+    transition: all 0.5s ease;
+}
+
+.party-member-button:hover::after {
+    left: 100%;
+}
