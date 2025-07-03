@@ -20,7 +20,7 @@ export function showStatusNotification(statusName, targetElement) {
 }
 export function showDamageNotification(amount, targetElement) {
     showNotification('damage', `-${amount}`, targetElement);
-}
+} 
 
 export function showError(message) {
     const notification = document.createElement('div');

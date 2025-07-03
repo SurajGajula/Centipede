@@ -29,11 +29,14 @@ export async function startBattle(ally, enemy) {
                     <div class="health-bar-background">
                         <div class="health-bar ally-health-bar" style="width: 100%"></div>
                     </div>
+                    <div class="ally-name">${ally.name}</div>
                 </div>
+                <div class="round-display">Round ${state.round}/${state.totalRounds}</div>
                 <div class="enemy-health-container">
                     <div class="health-bar-background">
                         <div class="health-bar enemy-health-bar" style="width: 100%"></div>
                     </div>
+                    <div class="enemy-name">${enemy.name}</div>
                 </div>
             </div>
             <div class="battle-characters">
@@ -144,7 +147,7 @@ export async function startBattle(ally, enemy) {
     }
     
     // Create battle menu with skill button and party member buttons (excluding current ally)
-    let rightUIContent = `<button id="skill-button">${ally.skillname.toUpperCase()}</button>`;
+    let rightUIContent = `<button id="skill-button">SKILL</button>`;
     
     if (partyMembers.length > 1) {
         console.log(`Creating buttons for ${partyMembers.length} party members`);

@@ -39,7 +39,7 @@ export async function initialize(username, hashedPassword) {
                 throw new Error(`Load Allies API failed with status ${response.status}`);
             }
             return response.json();
-        });
+        });        
 
         const enemiesPromise = fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadenemies", {
             method: 'POST',

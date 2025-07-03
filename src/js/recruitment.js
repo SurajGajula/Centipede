@@ -132,7 +132,7 @@ export function showRecruitmentResults(results) {
                     import('./ally.js').then(({default: Ally}) => {
                         const allies = alliesList.map(ally => 
                             new Ally(ally.Name, ally.Attack, ally.Health,
-                                    ally.SkillName, ally.SkillStatus, ally.SkillCount, ally.SkillHits));
+                                ally.SkillName, ally.SkillStatus, ally.SkillCount, ally.SkillHits));
                         const recruitments = recruitmentsList.map(r => new Recruitment(r.Name));
                         import('./menu.js').then(menuModule => {
                             if (hasCharacterResult) {

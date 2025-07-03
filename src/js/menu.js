@@ -102,11 +102,9 @@ function createSectionHTML(sectionType, items, party = []) {
 export function displayAllies(allies, party = []) {
     const leftUI = document.getElementById("leftUI");
     leftUI.innerHTML = `
-        <div class="info-panel">
-            <h2>Your Allies</h2>
-            <div class="ally-items-container">
-                ${createSectionHTML('ally', allies, party)}
-            </div>
+        <h2>Allies</h2>
+        <div class="ally-items-container">
+            ${createSectionHTML('ally', allies, party)}
         </div>
     `;
     
@@ -119,11 +117,9 @@ export function displayAllies(allies, party = []) {
 export function displayEnemies(enemies) {
     const leftUI = document.getElementById("leftUI");
     leftUI.innerHTML = `
-        <div class="info-panel">
-            <h2>Enemies</h2>
-            <div class="enemy-items-container">
-                ${createSectionHTML('enemy', enemies)}
-            </div>
+        <h2>Enemies</h2>
+        <div class="enemy-items-container">
+            ${createSectionHTML('enemy', enemies)}
         </div>
     `;
     
@@ -174,10 +170,10 @@ export function displayRecruitments(recruitments) {
         `;
     }).join('');
     leftUI.innerHTML = `
-    <h1>Recruitments</h1>
-    <div class="recruitment-items-container">
-        ${recruitmentSections}
-    </div>
+        <h2>Recruitments</h2>
+        <div class="recruitment-items-container">
+            ${recruitmentSections}
+        </div>
     `;
     const accountButton = document.getElementById("accountButton");
     if (accountButton) {

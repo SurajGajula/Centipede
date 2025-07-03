@@ -18,21 +18,21 @@ export async function setupUI() {
         if (data) {
             const { account, allies, enemies, recruitments } = data;
             
-            const accountButton = document.getElementById("accountButton");
-            const alliesButton = document.getElementById("alliesButton");
-            const enemiesButton = document.getElementById("enemiesButton");
-            const recruitButton = document.getElementById("recruitButton");
+const accountButton = document.getElementById("accountButton");
+const alliesButton = document.getElementById("alliesButton");
+const enemiesButton = document.getElementById("enemiesButton");
+const recruitButton = document.getElementById("recruitButton");
 
-            accountButton.addEventListener("click", () => loadAccount(account));
+        accountButton.addEventListener("click", () => loadAccount(account));
             alliesButton.addEventListener("click", () => displayAllies(allies));
             enemiesButton.addEventListener("click", () => displayEnemies(enemies));
             recruitButton.addEventListener("click", () => displayRecruitments(recruitments));
 
-            const gameContainer = document.getElementById('game-container');
-            if (gameContainer) {
-                gameContainer.style.display = 'flex';
-            } else {
-                console.error("Game container not found!");
+        const gameContainer = document.getElementById('game-container');
+        if (gameContainer) {
+            gameContainer.style.display = 'flex';
+        } else {
+            console.error("Game container not found!");
             }
 
             displayEnemies(enemies);

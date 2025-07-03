@@ -2,6 +2,7 @@ import { updateStatusDisplay } from "./status.js";
 import { showLoadingScreen, hideLoadingScreen } from "./loading.js";
 import { showStatusNotification, showDamageNotification } from "./notifications.js";
 import { displayAllies, displayEnemies } from "./menu.js";
+import Ally from "./ally.js";
 
 export async function showAllies() {
     try {
@@ -77,11 +78,30 @@ class State {
         this.enemy.maxHealth = this.enemy.health;
         this.state = 0;
         this.turn = 0;
+        this.round = 1;
+        this.totalRounds = 10;
+        this.originalAlly = { ...ally };
+        
+        this.battleData = {
+            enemyName: enemy.name,
+            roundNumber: 1,
+            currentAlly: {
+                name: ally.name
+            },
+            skillUsed: null,
+            rounds: [{
+                roundNumber: 1,
+                skillUsage: {}
+            }],
+            totalSkillUsage: {}
+        };
     }
+    
     nextTurn() {
         this.turn++;
         this.state = (this.state + 1) % 4;
     }
+    
     async allyAttack() {
         return new Promise(resolve => {
             setTimeout(() => {
@@ -97,11 +117,39 @@ class State {
                     if (isNewStatus && enemyElement) {
                         showStatusNotification(this.ally.skillstatus, enemyElement);
                     }
-                }                
+                }
+                
+                const allyName = this.ally.name;
+                
+                let currentRoundData = this.battleData.rounds.find(r => r.roundNumber === this.round);
+                if (!currentRoundData) {
+                    currentRoundData = {
+                        roundNumber: this.round,
+                        skillUsage: {}
+                    };
+                    this.battleData.rounds.push(currentRoundData);
+                }
+                if (!currentRoundData.skillUsage[allyName]) {
+                    currentRoundData.skillUsage[allyName] = 0;
+                }
+                currentRoundData.skillUsage[allyName]++;
+                
+                if (!this.battleData.totalSkillUsage[allyName]) {
+                    this.battleData.totalSkillUsage[allyName] = 0;
+                }
+                this.battleData.totalSkillUsage[allyName]++;
+                
+                this.battleData.skillUsed = {
+                    allyName: allyName
+                };
+                
+                this.storeBattleData();
+                
                 resolve();
             }, 1000);
         });
     }
+    
     async enemyAttack() {
         return new Promise(resolve => {
             setTimeout(() => {
@@ -122,22 +170,83 @@ class State {
             }, 1000);
         });
     }
+    
     checkBattleEnd() {
         if (this.ally.health <= 0) {
-            document.getElementById("leftUI").innerHTML = "<h1>You Lost!</h1>";
+            this.returnToMenuWithDefeat();
             return true;
         } else if (this.enemy.health <= 0) {
-            this.victory();
-            return true;
+            if (this.round < this.totalRounds) {
+                this.nextRound();
+                return true;
+            } else {
+                this.returnToMenuWithVictory();
+                return true;
+            }
         }
         return false;
     }
-    async victory() {
-        document.getElementById("leftUI").innerHTML = `
-            <h1>Victory!</h1>
-            <p>You defeated ${this.enemy.name}!</p>
-        `;
+    
+    async nextRound() {
+        this.round++;
+        this.ally = new Ally(
+            this.originalAlly.name,
+            this.originalAlly.attack,
+            this.originalAlly.health,
+            this.originalAlly.skillstatus,
+            this.originalAlly.skillcount,
+            this.originalAlly.skillhits
+        );
+        this.ally.maxHealth = this.ally.health;
+        this.enemy.health = this.enemy.maxHealth;
+        this.enemy.clearStatuses();
+        
+        this.battleData.roundNumber = this.round;
+        this.battleData.currentAlly = {
+            name: this.ally.name
+        };
+        this.battleData.skillUsed = null;
+        
+        this.battleData.rounds.push({
+            roundNumber: this.round,
+            skillUsage: {}
+        });
+        
+        await this.storeBattleData();
+        
+        const roundDisplay = document.querySelector('.round-display');
+        if (roundDisplay) {
+            roundDisplay.textContent = `Round ${this.round}/${this.totalRounds}`;
+        }
+        
+        const leftUI = document.getElementById("leftUI");
+        const battleContainer = leftUI.querySelector('.battle-container');
+        if (battleContainer) {
+            const transitionDiv = document.createElement('div');
+            transitionDiv.className = 'round-transition';
+            transitionDiv.textContent = `Round ${this.round}`;
+            battleContainer.appendChild(transitionDiv);
+            
+            setTimeout(() => {
+                transitionDiv.remove();
+            }, 2000);
+        }
+        
+        const healthBars = document.querySelectorAll('.health-bar');
+        healthBars.forEach(bar => bar.style.width = '100%');
+        updateStatusDisplay(this.ally, this.enemy);
     }
+    
+    async victory() {
+        const leftUI = document.getElementById("leftUI");
+        leftUI.innerHTML = `
+            <h1>Victory!</h1>
+            <p>You defeated ${this.enemy.name} in ${this.round} rounds!</p>
+        `;
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        await this.returnToMenuWithVictory();
+    }
+    
     async returnToMenuWithVictory() {
         showLoadingScreen("Victory!");
         const leftUI = document.getElementById("leftUI");
@@ -147,6 +256,7 @@ class State {
         rightUI.innerHTML = "";
         await this.restoreMenu();
     }
+    
     async returnToMenuWithDefeat() {
         showLoadingScreen("Defeat!");
         const leftUI = document.getElementById("leftUI");
@@ -156,6 +266,7 @@ class State {
         rightUI.innerHTML = "";
         await this.restoreMenu();
     }
+    
     async restoreMenu() {
         const rightUI = document.getElementById("rightUI");
         rightUI.innerHTML = `
@@ -195,16 +306,16 @@ class State {
                     });
                 });                
                 document.getElementById("alliesButton").addEventListener("click", () => {
-                    import('./menu.js').then(menuModule => menuModule.showAllies(allies));
+                    import('./menu.js').then(menuModule => menuModule.displayAllies(allies));
                 });                
                 document.getElementById("enemiesButton").addEventListener("click", () => {
-                    import('./menu.js').then(menuModule => menuModule.showEnemies(enemies));
+                    import('./menu.js').then(menuModule => menuModule.displayEnemies(enemies));
                 });
                 document.getElementById("recruitButton").addEventListener("click", () => {
                     import('./menu.js').then(menuModule => menuModule.displayRecruitments(recruitments));
                 });
                 const menuModule = await import('./menu.js');
-                menuModule.showEnemies(enemies);
+                menuModule.displayEnemies(enemies);
             } else {
                 console.error("Failed to reload game data after battle");
                 hideLoadingScreen();
@@ -214,11 +325,38 @@ class State {
             hideLoadingScreen();
         }
     }
+    
     showMenuUI() {
         const menuUI = document.getElementById("menuUI");
         if (menuUI) {
             menuUI.style.display = "block";
         }
     }
+    
+    async storeBattleData() {
+        try {
+            const username = localStorage.getItem('username');
+            const hashedPassword = localStorage.getItem('hashedPassword');
+            
+            if (!username || !hashedPassword) {
+                console.error("User credentials not found");
+                return;
+            }
+            
+            await fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/storebattle", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username,
+                    password: hashedPassword,
+                    passwordIsHashed: true,
+                    battleData: this.battleData
+                })
+            });
+        } catch (error) {
+            console.error("Failed to store battle data:", error);
+        }
+    }
 }
+
 export default State;

@@ -24,18 +24,18 @@ function displayAuthForms() {
         <div id="auth-container">
             <div id="login-section" class="auth-section active">
                 <h2>Login</h2>
-                <form id="login-form">
-                    <div>
+            <form id="login-form">
+                <div>
                         <label for="login-username">USERNAME</label>
                         <input type="text" id="login-username" name="username" required>
-                    </div>
-                    <div>
+                </div>
+                <div>
                         <label for="login-password">PASSWORD</label>
                         <input type="password" id="login-password" name="password" required>
-                    </div>
-                    <button type="submit">Login</button>
-                    <p id="login-error" class="error-message"></p>
-                </form>
+                </div>
+                <button type="submit">Login</button>
+                <p id="login-error" class="error-message"></p>
+            </form>
                 <p class="switch-form">Don't have an account? <a href="#" id="show-register">Register here</a></p>
             </div>
             
@@ -108,7 +108,7 @@ async function handleLoginSubmit(event) {
     showLoadingScreen("Logging In");
     
     try {
-        const hashedPassword = await hashPassword(password, username);
+        const hashedPassword = await hashPassword(password, username);        
         const success = await attemptLogin(username, hashedPassword);
         
         if (success) {
