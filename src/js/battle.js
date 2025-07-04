@@ -1,15 +1,92 @@
 import State from "./state.js";
 import { initializeStatusDisplay, updateStatusDisplay } from "./status.js";
 import { showLoadingScreen, hideLoadingScreen } from "./loading.js";
-let actionInProgress = false;
+import { showStatusNotification } from "./notifications.js";
 
-// Global variable to track health states of all party members
+let actionInProgress = false;
+let actionQueue = [];
+let nextActionNumber = 1;
+
 let partyMemberHealthStates = {};
 
+function addToQueue(type, data) {
+    if (nextActionNumber <= 9) {
+        actionQueue.push({ type, data, number: nextActionNumber });
+        nextActionNumber++;
+        return true;
+    }
+    return false;
+}
+
+function clearQueue() {
+    actionQueue = [];
+    nextActionNumber = 1;
+    const container = document.querySelector('.action-numbers-container');
+    if (container) {
+        container.innerHTML = '';
+    }
+    document.querySelectorAll('[data-action-number]').forEach(button => {
+        delete button.dataset.actionNumber;
+    });
+}
+
+async function executeQueue(state) {
+    if (actionInProgress || actionQueue.length === 0) return;
+    
+    actionInProgress = true;
+    const executeButton = document.getElementById("execute-button");
+    if (executeButton) {
+        executeButton.style.opacity = "0.6";
+        executeButton.style.cursor = "not-allowed";
+    }
+    
+    for (const action of actionQueue) {
+        if (action.type === 'skill') {
+            await useSkill(state);
+        } else if (action.type === 'switch') {
+            await switchPartyMember(state, action.data.newAlly, action.data.allAllies, action.data.partyMembers);
+        }
+        
+        if (state.checkBattleEnd()) break;
+    }
+    
+    clearQueue();
+    
+    actionInProgress = false;
+    if (executeButton) {
+        executeButton.style.opacity = "1";
+        executeButton.style.cursor = "pointer";
+    }
+}
+
+function addNumberIndicator(button, number) {
+    let container = document.querySelector('.action-numbers-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'action-numbers-container';
+        document.querySelector('.battle-container').appendChild(container);
+    }
+    
+    const buttonRect = button.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    
+    const horizontalOffset = (number - 1) * 20;
+    
+    const indicator = document.createElement('div');
+    indicator.className = 'action-number';
+    indicator.textContent = number;
+    indicator.style.left = `${buttonRect.left - containerRect.left + horizontalOffset}px`;
+    indicator.style.top = `${buttonRect.top - containerRect.top - 30}px`;
+    container.appendChild(indicator);
+    
+    button.dataset.actionNumber = number;
+}
+
 export async function startBattle(ally, enemy) {
-    // Initialize battle with party member buttons when multiple members are present
     showLoadingScreen("Preparing Battle");
     actionInProgress = false;
+    selectedSkill = false;
+    clearQueue();
     await new Promise(resolve => setTimeout(resolve, 100));
     
     const state = new State(ally, enemy);
@@ -53,7 +130,6 @@ export async function startBattle(ally, enemy) {
         </div>
     `;
     
-    // Load party data and ally data to get all party members
     let partyMembers = [];
     let allAllies = [];
     try {
@@ -61,7 +137,6 @@ export async function startBattle(ally, enemy) {
         const hashedPassword = localStorage.getItem('hashedPassword');
         
         if (username && hashedPassword) {
-            // Load party and allies data in parallel
             const [partyResponse, alliesResponse] = await Promise.all([
                 fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadparty", {
                     method: 'POST',
@@ -90,24 +165,20 @@ export async function startBattle(ally, enemy) {
             
             if (partyResponse.status < 400 && (!partyData.statusCode || partyData.statusCode < 400)) {
                 partyMembers = partyData.party || [];
-                console.log(`Loaded party members: ${partyMembers.join(', ')}`);
             }
             
             if (alliesResponse.status < 400 && Array.isArray(alliesData)) {
-                // Convert allies data to Ally objects
                 const { default: Ally } = await import('./ally.js');
-                allAllies = alliesData.map(allyData => new Ally(
-                    allyData.Name, 
-                    allyData.Attack, 
-                    allyData.Health, 
-                    allyData.SkillName, 
-                    allyData.SkillStatus, 
-                    allyData.SkillCount, 
-                    allyData.SkillHits
-                ));
-                console.log(`Loaded ${allAllies.length} allies`);
+                allAllies = alliesData.map(allyData => {
+                    return new Ally(
+                    allyData.Name,
+                    allyData.Attack,
+                    allyData.Health,
+                    allyData.SkillCount,
+                    allyData.SkillHits,
+                    allyData.SkillStatus
+                )});
                 
-                // Initialize health states for all party members if not already done
                 partyMembers.forEach(memberName => {
                     const memberAlly = allAllies.find(a => a.name === memberName);
                     if (memberAlly && !partyMemberHealthStates[memberName]) {
@@ -119,13 +190,11 @@ export async function startBattle(ally, enemy) {
                     }
                 });
                 
-                // Apply stored health state to current ally
                 if (partyMemberHealthStates[ally.name]) {
                     ally.health = partyMemberHealthStates[ally.name].currentHealth;
                     ally.maxHealth = partyMemberHealthStates[ally.name].maxHealth;
                     ally.statuses = { ...partyMemberHealthStates[ally.name].statuses };
                 } else {
-                    // Initialize health state for current ally
                     partyMemberHealthStates[ally.name] = {
                         currentHealth: ally.health,
                         maxHealth: ally.health,
@@ -136,9 +205,8 @@ export async function startBattle(ally, enemy) {
         }
     } catch (error) {
         console.error("Error loading party/allies data:", error);
-        partyMembers = [ally.name]; // Fallback to current ally only
+        partyMembers = [ally.name];
         allAllies = [ally];
-        // Initialize health state for fallback
         partyMemberHealthStates[ally.name] = {
             currentHealth: ally.health,
             maxHealth: ally.health,
@@ -146,22 +214,20 @@ export async function startBattle(ally, enemy) {
         };
     }
     
-    // Create battle menu with skill button and party member buttons (excluding current ally)
-    let rightUIContent = `<button id="skill-button">SKILL</button>`;
+    let rightUIContent = `
+        <button id="skill-button">SKILL</button>
+        <button id="execute-button" class="execute-button">EXECUTE</button>
+    `;
     
     if (partyMembers.length > 1) {
-        console.log(`Creating buttons for ${partyMembers.length} party members`);
         rightUIContent += `<div class="party-members-section">`;
         
-        // Only show buttons for party members that are NOT currently active
         partyMembers.forEach((memberName, index) => {
             if (memberName !== ally.name) {
                 rightUIContent += `<button class="party-member-button" data-member-name="${memberName}" data-member-index="${index}">${memberName.toUpperCase()}</button>`;
             }
         });
         rightUIContent += `</div>`;
-    } else {
-        console.log(`Only ${partyMembers.length} party member(s), not creating additional buttons`);
     }
     
     rightUI.innerHTML = rightUIContent;
@@ -178,29 +244,38 @@ export async function startBattle(ally, enemy) {
         });
     }));
     
-    document.getElementById("skill-button").addEventListener("click", () => {
-        if (!actionInProgress) {
-            useSkill(state);
+    const skillButton = document.getElementById("skill-button");
+    const executeButton = document.getElementById("execute-button");
+    
+    skillButton.addEventListener("click", () => {
+        if (!actionInProgress && nextActionNumber <= 9) {
+            if (addToQueue('skill', {})) {
+                addNumberIndicator(skillButton, nextActionNumber - 1);
+            }
         }
     });
     
-    // Add event listeners for party member buttons - implement switching functionality
+    executeButton.addEventListener("click", () => {
+        if (!actionInProgress && actionQueue.length > 0) {
+            executeQueue(state);
+        }
+    });
+    
     const partyMemberButtons = document.querySelectorAll('.party-member-button');
     partyMemberButtons.forEach(button => {
         button.addEventListener("click", () => {
-            if (!actionInProgress) {
+            if (!actionInProgress && nextActionNumber <= 9) {
                 const memberName = button.getAttribute('data-member-name');
-                console.log(`Switching to party member: ${memberName}`);
                 
-                // Find the ally to switch to
                 const newAlly = allAllies.find(a => a.name === memberName);
                 if (!newAlly) {
                     console.error(`Could not find ally: ${memberName}`);
                     return;
                 }
                 
-                // Perform the switch
-                switchPartyMember(state, newAlly, allAllies, partyMembers);
+                if (addToQueue('switch', { newAlly, allAllies, partyMembers })) {
+                    addNumberIndicator(button, nextActionNumber - 1);
+                }
             }
         });
     });
@@ -209,116 +284,119 @@ export async function startBattle(ally, enemy) {
     return state;
 }
 
-// Function to handle party member switching with health persistence
 function switchPartyMember(state, newAlly, allAllies, partyMembers) {
-    try {
-        actionInProgress = true;
-        
-        // Store the current ally's state before switching
-        const oldAlly = state.ally;
-        console.log(`Switching from ${oldAlly.name} to ${newAlly.name}`);
-        
-        // Save current ally's health and status state
-        partyMemberHealthStates[oldAlly.name] = {
-            currentHealth: oldAlly.health,
-            maxHealth: oldAlly.maxHealth,
-            statuses: { ...oldAlly.statuses }
-        };
-        
-        // Restore the new ally's health and status state
-        if (partyMemberHealthStates[newAlly.name]) {
-            newAlly.health = partyMemberHealthStates[newAlly.name].currentHealth;
-            newAlly.maxHealth = partyMemberHealthStates[newAlly.name].maxHealth;
-            newAlly.statuses = { ...partyMemberHealthStates[newAlly.name].statuses };
-        } else {
-            // Initialize if this is the first time using this ally
-            partyMemberHealthStates[newAlly.name] = {
-                currentHealth: newAlly.health,
-                maxHealth: newAlly.health,
-                statuses: { ...newAlly.statuses }
-            };
-        }
-        
-        // Update the state with the new ally
-        state.ally = newAlly;
-        
-        // Update the UI elements
-        const allyImage = document.querySelector('.battle-ally img');
-        const skillButton = document.getElementById('skill-button');
-        
-        if (allyImage) {
-            allyImage.src = `../assets/images/${newAlly.name}.svg`;
-            allyImage.alt = newAlly.name;
-        }
-        
-        if (skillButton) {
-            skillButton.textContent = newAlly.skillname.toUpperCase();
-        }
-        
-        // Update health bar to reflect new ally's current health
-        updateHealthBars(state);
-        
-        // Update status displays
-        updateStatusDisplay(state.ally, state.enemy);
-        
-        // Update the party member buttons to show the old ally and hide the new one
-        const rightUI = document.getElementById("rightUI");
-        let rightUIContent = `<button id="skill-button">${newAlly.skillname.toUpperCase()}</button>`;
-        
-        if (partyMembers.length > 1) {
-            rightUIContent += `<div class="party-members-section">`;
+    return new Promise((resolve) => {
+        try {
+            actionInProgress = true;
             
-            // Show all party members except the currently active one
-            partyMembers.forEach((memberName, index) => {
-                if (memberName !== newAlly.name) {
-                    rightUIContent += `<button class="party-member-button" data-member-name="${memberName}" data-member-index="${index}">${memberName.toUpperCase()}</button>`;
-                }
-            });
-            rightUIContent += `</div>`;
-        }
-        
-        rightUI.innerHTML = rightUIContent;
-        
-        // Re-add event listeners
-        document.getElementById("skill-button").addEventListener("click", () => {
-            if (!actionInProgress) {
-                useSkill(state);
+            const oldAlly = state.ally;
+            
+            partyMemberHealthStates[oldAlly.name] = {
+                currentHealth: oldAlly.health,
+                maxHealth: oldAlly.maxHealth,
+                statuses: { ...oldAlly.statuses }
+            };
+            
+            if (partyMemberHealthStates[newAlly.name]) {
+                newAlly.health = partyMemberHealthStates[newAlly.name].currentHealth;
+                newAlly.maxHealth = partyMemberHealthStates[newAlly.name].maxHealth;
+                newAlly.statuses = { ...partyMemberHealthStates[newAlly.name].statuses };
+            } else {
+                partyMemberHealthStates[newAlly.name] = {
+                    currentHealth: newAlly.health,
+                    maxHealth: newAlly.health,
+                    statuses: { ...newAlly.statuses }
+                };
             }
-        });
-        
-        const partyMemberButtons = document.querySelectorAll('.party-member-button');
-        partyMemberButtons.forEach(button => {
-            button.addEventListener("click", () => {
-                if (!actionInProgress) {
-                    const memberName = button.getAttribute('data-member-name');
-                    const memberToSwitchTo = allAllies.find(a => a.name === memberName);
-                    if (memberToSwitchTo) {
-                        switchPartyMember(state, memberToSwitchTo, allAllies, partyMembers);
+            
+            state.ally = newAlly;
+            
+            const allyImage = document.querySelector('.battle-ally img');
+            const skillButton = document.getElementById('skill-button');
+            
+            if (allyImage) {
+                allyImage.src = `../assets/images/${newAlly.name}.svg`;
+                allyImage.alt = newAlly.name;
+            }
+            
+            if (skillButton) {
+                skillButton.textContent = "SKILL";
+            }
+            
+            updateHealthBars(state);
+            
+            updateStatusDisplay(state.ally, state.enemy);
+            
+            const rightUI = document.getElementById("rightUI");
+            let rightUIContent = `
+                <button id="skill-button">SKILL</button>
+                <button id="execute-button" class="execute-button">EXECUTE</button>
+            `;
+            
+            if (partyMembers.length > 1) {
+                rightUIContent += `<div class="party-members-section">`;
+                
+                partyMembers.forEach((memberName, index) => {
+                    if (memberName !== newAlly.name) {
+                        rightUIContent += `<button class="party-member-button" data-member-name="${memberName}" data-member-index="${index}">${memberName.toUpperCase()}</button>`;
+                    }
+                });
+                rightUIContent += `</div>`;
+            }
+            
+            rightUI.innerHTML = rightUIContent;
+            
+            const newSkillButton = document.getElementById("skill-button");
+            const executeButton = document.getElementById("execute-button");
+            
+            newSkillButton.addEventListener("click", () => {
+                if (!actionInProgress && nextActionNumber <= 9) {
+                    if (addToQueue('skill', {})) {
+                        addNumberIndicator(newSkillButton, nextActionNumber - 1);
                     }
                 }
             });
-        });
-        
-        console.log(`Successfully switched to ${newAlly.name} with ${newAlly.health}/${newAlly.maxHealth} health`);
-        
-    } catch (error) {
-        console.error("Error during party member switch:", error);
-    } finally {
-        actionInProgress = false;
-    }
+            
+            executeButton.addEventListener("click", () => {
+                if (!actionInProgress && actionQueue.length > 0) {
+                    executeQueue(state);
+                }
+            });
+            
+            const partyMemberButtons = document.querySelectorAll('.party-member-button');
+            partyMemberButtons.forEach(button => {
+                button.addEventListener("click", () => {
+                    if (!actionInProgress && nextActionNumber <= 9) {
+                        const memberName = button.getAttribute('data-member-name');
+                        const memberToSwitchTo = allAllies.find(a => a.name === memberName);
+                        if (memberToSwitchTo) {
+                            if (addToQueue('switch', { newAlly: memberToSwitchTo, allAllies, partyMembers })) {
+                                addNumberIndicator(button, nextActionNumber - 1);
+                            }
+                        }
+                    }
+                });
+            });
+            
+            resolve();
+        } catch (error) {
+            console.error("Error during party member switch:", error);
+            resolve();
+        } finally {
+            actionInProgress = false;
+        }
+    });
 }
 
 async function useSkill(state) {
     try {
-        actionInProgress = true;
         const skillButton = document.getElementById("skill-button");
+        
         if (skillButton) {
-            skillButton.disabled = true;
             skillButton.style.opacity = "0.6";
             skillButton.style.cursor = "not-allowed";
         }
         
-        // Save current ally's state before attack (in case they take damage from enemy retaliation)
         partyMemberHealthStates[state.ally.name] = {
             currentHealth: state.ally.health,
             maxHealth: state.ally.maxHealth,
@@ -332,7 +410,6 @@ async function useSkill(state) {
         }
         await state.enemyAttack();
         
-        // Update stored health state after potential damage from enemy
         partyMemberHealthStates[state.ally.name] = {
             currentHealth: state.ally.health,
             maxHealth: state.ally.maxHealth,
@@ -347,10 +424,8 @@ async function useSkill(state) {
     } catch (error) {
         console.error("Error during battle sequence:", error);
     } finally {
-        actionInProgress = false;
         const skillButton = document.getElementById("skill-button");
         if (skillButton) {
-            skillButton.disabled = false;
             skillButton.style.opacity = "1";
             skillButton.style.cursor = "pointer";
         }

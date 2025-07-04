@@ -80,7 +80,16 @@ class State {
         this.turn = 0;
         this.round = 1;
         this.totalRounds = 10;
-        this.originalAlly = { ...ally };
+        this.originalAlly = {
+            name: ally.name,
+            attack: ally.attack,
+            health: ally.health,
+            skillcount: ally.skillcount,
+            skillhits: ally.skillhits,
+            skillstatus: ally.skillstatus,
+            maxHealth: ally.maxHealth,
+            statuses: { ...ally.statuses }
+        };
         
         this.battleData = {
             enemyName: enemy.name,
@@ -193,9 +202,9 @@ class State {
             this.originalAlly.name,
             this.originalAlly.attack,
             this.originalAlly.health,
-            this.originalAlly.skillstatus,
             this.originalAlly.skillcount,
-            this.originalAlly.skillhits
+            this.originalAlly.skillhits,
+            this.originalAlly.skillstatus
         );
         this.ally.maxHealth = this.ally.health;
         this.enemy.health = this.enemy.maxHealth;

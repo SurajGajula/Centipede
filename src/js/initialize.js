@@ -7,7 +7,6 @@ import { showLoadingScreen, hideLoadingScreen } from "./loading.js";
 
 export async function initialize(username, hashedPassword) {
     showLoadingScreen("Initializing Game");
-    console.log("Initializing with fresh data from API");    
     try {
         sessionStorage.removeItem('accountData');        
         const accountPromise = fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadaccount", {
@@ -72,7 +71,6 @@ export async function initialize(username, hashedPassword) {
         });
 
         const [accountData, alliesData, enemiesData, recruitmentsData] = await Promise.all([accountPromise, alliesPromise, enemiesPromise, recruitmentsPromise]);
-        console.log("Received account data:", accountData);
 
         const alliesList = Array.isArray(alliesData) ? alliesData : [];
         const enemiesList = Array.isArray(enemiesData) ? enemiesData : [];
@@ -84,12 +82,18 @@ export async function initialize(username, hashedPassword) {
             sessionStorage.setItem('accountData', JSON.stringify({
                 marbles: account.marbles
             }));
-            console.log("Stored fresh account data in session storage:", account);
         } catch (e) {
             console.error("Failed to store account data in session storage:", e);
         }
 
-        const allies = alliesList.map(ally => new Ally(ally.Name, ally.Attack, ally.Health, ally.SkillName, ally.SkillStatus, ally.SkillCount, ally.SkillHits));
+        const allies = alliesList.map(ally => new Ally(
+            ally.Name,
+            ally.Attack,
+            ally.Health,
+            ally.SkillCount,
+            ally.SkillHits,
+            ally.SkillStatus
+        ));
         const enemies = enemiesList.map(enemy => new Enemy(enemy.Name, enemy.Attack, enemy.Health, enemy.SkillName, enemy.SkillStatus, enemy.SkillCount, enemy.SkillHits));
         const recruitments = recruitmentsList.map(recruitment => new Recruitment(recruitment.Name));        
 
