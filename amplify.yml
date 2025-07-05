@@ -6,8 +6,8 @@ frontend:
         - echo "No build process needed for static site"
     build:
       commands:
-        - echo "Copying files to build directory"
-        - cp -r css js assets index.html $AMPLIFY_DIFF_DEPLOY_ROOT || cp -r css js assets index.html .
+        - echo "Files are already in the correct location"
+        - ls -la
   artifacts:
     baseDirectory: .
     files:
