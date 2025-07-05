@@ -6,6 +6,7 @@ import Account from './account.js';
 import Ally from './ally.js';
 import { showRecruitment } from './recruitment.js';
 import { makeApiCall } from './config.js';
+import { showAlert } from './alert.js';
 
 function getStoredAccountInfo() {
     try {
@@ -205,7 +206,7 @@ export function displayRecruitments(recruitments) {
             })
             .catch(error => {
                 console.error("Error refreshing account data:", error);
-                alert("Failed to refresh account data. Please try again.");
+                showAlert("Failed to refresh account data. Please try again.");
             });
         });
     }
@@ -297,7 +298,7 @@ function setupPartyButtons(allies) {
                 console.error("Party update error:", error);
                 this.textContent = originalText;
                 this.disabled = false;
-                alert(`Failed to update party: ${error.message}`);
+                showAlert(`Failed to update party: ${error.message}`);
             }
         });
     });

@@ -3,6 +3,7 @@ import { initializeStatusDisplay, updateStatusDisplay } from "./status.js";
 import { showLoadingScreen, hideLoadingScreen } from "./loading.js";
 import { showStatusNotification } from "./notifications.js";
 import { makeApiCall } from "./config.js";
+import { showAlert } from "./alert.js";
 
 let actionInProgress = false;
 let actionQueue = [];
@@ -528,7 +529,7 @@ export function setupBattleButtons(enemies) {
                 startBattle(firstPartyMember, selectedEnemy);
             } catch (error) {
                 console.error("Error starting battle:", error);
-                alert(error.message || "Failed to start battle");
+                showAlert(error.message || "Failed to start battle");
             } finally {
                 hideLoadingScreen();
             }

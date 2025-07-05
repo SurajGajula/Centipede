@@ -4,6 +4,7 @@ import { getUsername, getPassword } from './account.js';
 import { showMainMenu } from './menu.js';
 import { showError, showSuccess } from './notifications.js';
 import { makeApiCall, getApiUrl } from './config.js';
+import { showAlert } from './alert.js';
 
 const MARBLE_COST = 1000;
 
@@ -28,7 +29,7 @@ export async function pullRecruitment(characterName) {
         
         // Handle insufficient marbles case
         if (data.insufficientMarbles) {
-            alert(`Not enough marbles! You need ${data.requiredMarbles} marbles but only have ${data.currentMarbles}.`);
+            showAlert(`Not enough marbles! You need ${data.requiredMarbles} marbles but only have ${data.currentMarbles}.`);
             return null; // Return null to indicate no recruitment was attempted
         }
         
@@ -236,7 +237,7 @@ export function setupRecruitButtons(recruitments) {
                 console.error("Recruitment error:", error);
                 this.textContent = originalText;
                 this.disabled = false;
-                alert(`Recruitment failed: ${error.message}`);
+                showAlert(`Recruitment failed: ${error.message}`);
             }
         });
     });
