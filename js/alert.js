@@ -78,7 +78,7 @@ style.textContent = `
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: rgba(0, 0, 0, 0.7);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -92,14 +92,36 @@ style.textContent = `
     }
     
     .alert-container {
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        background-color: #202020;
+        border-left: 3px solid #909090;
+        border-radius: 6px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
         max-width: 400px;
         width: 90%;
         max-height: 300px;
         transform: scale(0.8);
         transition: transform 0.3s ease;
+        position: relative;
+    }
+    
+    .alert-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 15px;
+        height: 3px;
+        background-color: #909090;
+    }
+    
+    .alert-container::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 30px;
+        height: 3px;
+        background-color: #909090;
     }
     
     .alert-container.show {
@@ -114,34 +136,38 @@ style.textContent = `
     .alert-message {
         font-size: 16px;
         line-height: 1.5;
-        color: #333;
+        color: white;
         margin-bottom: 20px;
         word-wrap: break-word;
+        font-family: Arial, sans-serif;
     }
     
     .alert-button {
-        background-color: #007bff;
+        background-color: #333;
         color: white;
         border: none;
-        padding: 10px 24px;
+        padding: 12px 24px;
         border-radius: 4px;
         font-size: 16px;
         cursor: pointer;
         min-width: 80px;
-        transition: background-color 0.2s ease;
+        transition: background-color 0.3s ease;
+        font-family: Arial, sans-serif;
     }
     
     .alert-button:hover {
-        background-color: #0056b3;
+        background-color: #4fc3f7;
+        color: #121212;
     }
     
     .alert-button:focus {
-        outline: 2px solid #007bff;
+        outline: 2px solid #4fc3f7;
         outline-offset: 2px;
     }
     
     .alert-button:active {
-        background-color: #004085;
+        background-color: #29b6f6;
+        color: #121212;
     }
     
     @media (max-width: 480px) {
