@@ -4,14 +4,13 @@ import Enemy from "./enemy.js";
 import Recruitment from "./recruitment.js";
 import { handleApiError } from './error.js';
 import { showLoadingScreen, hideLoadingScreen } from "./loading.js";
+import { makeApiCall } from './config.js';
 
 export async function initialize(username, hashedPassword) {
     showLoadingScreen("Initializing Game");
     try {
         sessionStorage.removeItem('accountData');        
-        const accountPromise = fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadaccount", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const accountPromise = makeApiCall('LOAD_ACCOUNT', {
             body: JSON.stringify({ 
                 username, 
                 password: hashedPassword,
@@ -25,9 +24,7 @@ export async function initialize(username, hashedPassword) {
             return response.json();
         });
 
-        const alliesPromise = fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadallies", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const alliesPromise = makeApiCall('LOAD_ALLIES', {
             body: JSON.stringify({ 
                 username, 
                 password: hashedPassword,
@@ -40,9 +37,7 @@ export async function initialize(username, hashedPassword) {
             return response.json();
         });        
 
-        const enemiesPromise = fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadenemies", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const enemiesPromise = makeApiCall('LOAD_ENEMIES', {
             body: JSON.stringify({ 
                 username, 
                 password: hashedPassword,
@@ -55,9 +50,7 @@ export async function initialize(username, hashedPassword) {
             return response.json();
         });
 
-        const recruitmentsPromise = fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadrecruitments", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const recruitmentsPromise = makeApiCall('LOAD_RECRUITMENTS', {
             body: JSON.stringify({ 
                 username, 
                 password: hashedPassword,

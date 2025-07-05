@@ -24,7 +24,7 @@ function updateEntityStatusDisplay(entity, entityType) {
     Object.entries(entity.statuses).forEach(([status, count]) => {
         const statusIndicator = document.createElement('div');
         statusIndicator.className = 'status-indicator';        
-        const svgPath = `../assets/images/${status}.svg`;
+        const svgPath = `assets/images/${status}.svg`;
         statusIndicator.style.backgroundImage = `url('${svgPath}')`;
         statusIndicator.style.filter = 'brightness(1.3) contrast(1.2)';
         const countSpan = document.createElement('span');

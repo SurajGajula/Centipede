@@ -2,10 +2,13 @@ import State from "./state.js";
 import { initializeStatusDisplay, updateStatusDisplay } from "./status.js";
 import { showLoadingScreen, hideLoadingScreen } from "./loading.js";
 import { showStatusNotification } from "./notifications.js";
+import { makeApiCall } from "./config.js";
 
 let actionInProgress = false;
 let actionQueue = [];
 let nextActionNumber = 1;
+let selectedSkill = false;
+let cardOverlayActive = false;
 
 let partyMemberHealthStates = {};
 
@@ -27,6 +30,48 @@ function clearQueue() {
     }
     document.querySelectorAll('[data-action-number]').forEach(button => {
         delete button.dataset.actionNumber;
+    });
+}
+
+export function showCardOverlay() {
+    return new Promise(resolve => {
+        // Remove any existing overlays first
+        const existingOverlay = document.querySelector('.card-overlay');
+        if (existingOverlay) {
+            existingOverlay.remove();
+        }
+        
+        const overlay = document.createElement('div');
+        overlay.className = 'card-overlay';
+        
+        const container = document.createElement('div');
+        container.className = 'card-container';
+        
+        for (let i = 0; i < 3; i++) {
+            const card = document.createElement('div');
+            card.className = 'battle-card';
+            card.addEventListener('click', () => {
+                // Add selected class to clicked card
+                card.classList.add('selected');
+                
+                // Add fade-out class to overlay
+                overlay.classList.add('fade-out');
+                
+                // Remove overlay after animation completes
+                setTimeout(() => {
+                    if (overlay && overlay.parentNode) {
+                        overlay.remove();
+                    }
+                    cardOverlayActive = false;
+                    resolve();
+                }, 300); // Match the CSS transition duration
+            });
+            container.appendChild(card);
+        }
+        
+        overlay.appendChild(container);
+        document.body.appendChild(overlay);
+        cardOverlayActive = true;
     });
 }
 
@@ -87,14 +132,18 @@ export async function startBattle(ally, enemy) {
     actionInProgress = false;
     selectedSkill = false;
     clearQueue();
+    
+    // Reset party member health states for the new battle
+    partyMemberHealthStates = {};
+    
     await new Promise(resolve => setTimeout(resolve, 100));
     
     const state = new State(ally, enemy);
     const leftUI = document.getElementById("leftUI");
     const rightUI = document.getElementById("rightUI");
     
-    const allyImagePath = `../assets/images/${ally.name}.svg`;
-    const enemyImagePath = `../assets/images/${enemy.name}.svg`;
+    const allyImagePath = `assets/images/${ally.name}.svg`;
+    const enemyImagePath = `assets/images/${enemy.name}.svg`;
     
     ally.clearStatuses();
     enemy.clearStatuses();
@@ -138,18 +187,14 @@ export async function startBattle(ally, enemy) {
         
         if (username && hashedPassword) {
             const [partyResponse, alliesResponse] = await Promise.all([
-                fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadparty", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                makeApiCall('LOAD_PARTY', {
                     body: JSON.stringify({
                         username,
                         password: hashedPassword,
                         passwordIsHashed: true
                     })
                 }),
-                fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadallies", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                makeApiCall('LOAD_ALLIES', {
                     body: JSON.stringify({
                         username,
                         password: hashedPassword,
@@ -315,7 +360,7 @@ function switchPartyMember(state, newAlly, allAllies, partyMembers) {
             const skillButton = document.getElementById('skill-button');
             
             if (allyImage) {
-                allyImage.src = `../assets/images/${newAlly.name}.svg`;
+                allyImage.src = `assets/images/${newAlly.name}.svg`;
                 allyImage.alt = newAlly.name;
             }
             
@@ -455,9 +500,7 @@ export function setupBattleButtons(enemies) {
                     throw new Error("User credentials not found");
                 }
                 showLoadingScreen("Loading party...");
-                const partyResponse = await fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadparty", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                const partyResponse = await makeApiCall('LOAD_PARTY', {
                     body: JSON.stringify({
                         username,
                         password: hashedPassword,

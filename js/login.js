@@ -1,6 +1,7 @@
 import { handleApiError } from './error.js';
 import { showLoadingScreen, hideLoadingScreen } from "./loading.js";
 import { setupUI } from './main.js';
+import { makeApiCall } from './config.js';
 
 async function hashPassword(password, salt = '') {
     const saltedPassword = password + salt;
@@ -175,11 +176,7 @@ async function handleRegisterSubmit(event) {
 
 async function attemptLogin(username, hashedPassword) {
     try {
-        const response = await fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/login", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+        const response = await makeApiCall('LOGIN', {
             body: JSON.stringify({ 
                 username, 
                 password: hashedPassword,
@@ -207,11 +204,7 @@ async function attemptLogin(username, hashedPassword) {
 
 async function attemptRegister(username, hashedPassword) {
     try {
-        const response = await fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/register", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+        const response = await makeApiCall('REGISTER', {
             body: JSON.stringify({ 
                 username, 
                 password: hashedPassword,

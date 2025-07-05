@@ -3,6 +3,7 @@ import { showLoadingScreen, hideLoadingScreen } from "./loading.js";
 import { showStatusNotification, showDamageNotification } from "./notifications.js";
 import { displayAllies, displayEnemies } from "./menu.js";
 import Ally from "./ally.js";
+import { makeApiCall } from "./config.js";
 
 export async function showAllies() {
     try {
@@ -197,6 +198,14 @@ class State {
     }
     
     async nextRound() {
+        // Show card overlay for rounds 1-9 before transitioning
+        if (this.round >= 1 && this.round < 9) {
+            const { showCardOverlay } = await import('./battle.js');
+            await showCardOverlay();
+            // Add a small delay to ensure overlay is fully removed
+            await new Promise(resolve => setTimeout(resolve, 350));
+        }
+
         this.round++;
         this.ally = new Ally(
             this.originalAlly.name,
@@ -352,9 +361,7 @@ class State {
                 return;
             }
             
-            await fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/storebattle", {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            await makeApiCall('STORE_BATTLE', {
                 body: JSON.stringify({
                     username,
                     password: hashedPassword,

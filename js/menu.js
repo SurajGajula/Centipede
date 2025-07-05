@@ -5,6 +5,7 @@ import { handleApiError } from './error.js';
 import Account from './account.js';
 import Ally from './ally.js';
 import { showRecruitment } from './recruitment.js';
+import { makeApiCall } from './config.js';
 
 function getStoredAccountInfo() {
     try {
@@ -63,7 +64,7 @@ export function loadAccount(account){
 function createSectionHTML(sectionType, items, party = []) {
     return items.map((item, index) => {
         const imageName = `${item.name}.svg`;
-        const imagePath = `../assets/images/${imageName}`;
+        const imagePath = `assets/images/${imageName}`;
         const partyIndex = party.indexOf(item.name);
         const isInParty = partyIndex !== -1;
         const partyPosition = isInParty ? partyIndex + 1 : null;
@@ -155,8 +156,8 @@ function setupInfoPanels(sections) {
 export function displayRecruitments(recruitments) {
     const leftUI = document.getElementById("leftUI");
     const recruitmentSections = recruitments.map((recruitment, index) => {
-        const imageName = `${recruitment.name}.svg`;
-        const imagePath = `../assets/images/${imageName}`;
+            const imageName = `${recruitment.name}.svg`;
+    const imagePath = `assets/images/${imageName}`;
         return `
             <div class="info-panel recruitment-section">
                 <div class="recruitment-details-content">
@@ -180,9 +181,7 @@ export function displayRecruitments(recruitments) {
         accountButton.addEventListener("click", () => {
             const username = localStorage.getItem('username');
             const hashedPassword = localStorage.getItem('hashedPassword');            
-            fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadaccount", {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            makeApiCall('LOAD_ACCOUNT', {
                 body: JSON.stringify({ 
                     username, 
                     password: hashedPassword,
@@ -221,9 +220,7 @@ async function updateParty(characterName) {
             throw new Error("User credentials not found. Please log in again.");
         }
         showLoadingScreen("Updating party...");
-        const response = await fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/addparty", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const response = await makeApiCall('ADD_PARTY', {
             body: JSON.stringify({
                 username,
                 password: hashedPassword,
@@ -315,9 +312,7 @@ async function loadAccountFromAPI() {
             throw new Error("User credentials not found");
         }
 
-        const response = await fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/loadaccount", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const response = await makeApiCall('LOAD_ACCOUNT', {
             body: JSON.stringify({
                 username,
                 password: hashedPassword,

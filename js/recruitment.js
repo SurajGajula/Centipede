@@ -3,6 +3,7 @@ import { handleApiError } from "./error.js";
 import { getUsername, getPassword } from './account.js';
 import { showMainMenu } from './menu.js';
 import { showError, showSuccess } from './notifications.js';
+import { makeApiCall, getApiUrl } from './config.js';
 
 const MARBLE_COST = 1000;
 
@@ -19,9 +20,7 @@ export async function pullRecruitment(characterName) {
         if (!username || !hashedPassword) throw new Error("User credentials not found. Please log in again.");        
         showLoadingScreen("Recruiting ally...");
         await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 500));        
-        const response = await fetch("https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/pullrecruitment", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const response = await makeApiCall('PULL_RECRUITMENT', {
             body: JSON.stringify({ username, password: hashedPassword, passwordIsHashed: true, characterName })
         });        
         hideLoadingScreen();
@@ -62,7 +61,7 @@ export function showRecruitmentResults(results) {
                     resultDisplay.appendChild(resultLabel);
                 } else if (result.type === "character") {
                     const characterImage = document.createElement('img');
-                    characterImage.src = `../assets/images/${result.name}.svg`;
+                    characterImage.src = `assets/images/${result.name}.svg`;
                     characterImage.alt = result.name;
                     resultDisplay.appendChild(characterImage);                    
                     const resultLabel = document.createElement('div');
@@ -92,11 +91,9 @@ export function showRecruitmentResults(results) {
             passwordIsHashed: true
         });
         const createApiRequest = (endpoint, credentials) => {
-            return fetch(`https://l6ct9b9z8g.execute-api.us-west-2.amazonaws.com/${endpoint}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            return makeApiCall(endpoint, {
                 body: JSON.stringify(credentials),
-                cache: endpoint === 'loadaccount' ? 'no-cache' : undefined
+                cache: endpoint === 'LOAD_ACCOUNT' ? 'no-cache' : undefined
             }).then(response => {
                 if (!response.ok) {
                     throw new Error(`${endpoint} API failed with status ${response.status}`);
@@ -111,9 +108,9 @@ export function showRecruitmentResults(results) {
             sessionStorage.removeItem('accountData');
             const credentials = getCredentials();
             Promise.all([
-                createApiRequest('loadaccount', credentials),
-                createApiRequest('loadallies', credentials),
-                createApiRequest('loadrecruitments', credentials)
+                createApiRequest('LOAD_ACCOUNT', credentials),
+                createApiRequest('LOAD_ALLIES', credentials),
+                createApiRequest('LOAD_RECRUITMENTS', credentials)
             ])
             .then(([accountData, alliesData, recruitmentsData]) => {
                 hideLoadingScreen();
@@ -167,7 +164,7 @@ export function showRecruitmentResults(results) {
                     resultCard.appendChild(cardLabel);
                 } else {
                     const cardImage = document.createElement('img');
-                    cardImage.src = `../assets/images/${result.name}.svg`;
+                    cardImage.src = `assets/images/${result.name}.svg`;
                     cardImage.alt = result.name;
                     resultCard.appendChild(cardImage);                
                     const cardLabel = document.createElement('div');
