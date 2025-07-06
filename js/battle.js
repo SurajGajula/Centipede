@@ -34,6 +34,19 @@ function clearQueue() {
     });
 }
 
+function formatCardDescription(description) {
+    // Replace any text in {} with green spans (removing the brackets)
+    let formattedDesc = description.replace(/\{([^}]+)\}/g, '<span class="number">$1</span>');
+    
+    // Replace status names in () with their icons
+    formattedDesc = formattedDesc.replace(/\(([^)]+)\)/g, (match, status) => {
+        const statusLower = status.toLowerCase();
+        return `<span class="status-icon"><img src="assets/images/${statusLower}.svg" alt="${status}" title="${status}"></span>`;
+    });
+    
+    return formattedDesc;
+}
+
 export async function showCardOverlay() {
     return new Promise(async (resolve) => {
         const existingOverlay = document.querySelector('.card-overlay');
@@ -76,10 +89,9 @@ export async function showCardOverlay() {
             handleApiError('Failed to load items', error);
             return;
         }
-        
-        let hasSelectedCard = false;
-        const cards = [];
 
+        let isSelectionMade = false;
+        
         for (let i = 0; i < 3; i++) {
             const card = document.createElement('div');
             card.className = 'battle-card';
@@ -89,7 +101,7 @@ export async function showCardOverlay() {
                 card.innerHTML = `
                     <div class="card-content">
                         <h3 class="card-title">${item.name}</h3>
-                        <p class="card-description">${item.description}</p>
+                        <p class="card-description">${formatCardDescription(item.description)}</p>
                         <div class="card-rarity">${item.rarity}</div>
                     </div>
                 `;
@@ -103,25 +115,17 @@ export async function showCardOverlay() {
                 `;
             }
             
-            card.addEventListener('click', () => {
-                if (hasSelectedCard) return;
-                
-                // Immediately disable all cards
-                overlay.style.pointerEvents = 'none';
-                hasSelectedCard = true;
-                
+            card.addEventListener('click', async () => {
+                if (isSelectionMade) return; // Prevent multiple selections
+                isSelectionMade = true;
+
+                // Disable all cards
+                document.querySelectorAll('.battle-card').forEach(c => {
+                    c.style.pointerEvents = 'none';
+                });
+
                 card.classList.add('selected');
                 
-                // Disable and visually indicate other cards
-                cards.forEach(otherCard => {
-                    if (otherCard !== card) {
-                        otherCard.classList.add('disabled');
-                        otherCard.style.pointerEvents = 'none';
-                        otherCard.style.opacity = '0.5';
-                    }
-                });
-                
-                // Add fade-out after disabling interactions
                 overlay.classList.add('fade-out');
                 
                 setTimeout(() => {
@@ -129,11 +133,9 @@ export async function showCardOverlay() {
                         overlay.remove();
                     }
                     cardOverlayActive = false;
-                    resolve();
+                    resolve(items[i] || null);
                 }, 300);
             });
-            
-            cards.push(card);
             container.appendChild(card);
         }
         
@@ -153,22 +155,21 @@ async function executeQueue(state) {
         executeButton.style.cursor = "not-allowed";
     }
     
-    for (const action of actionQueue) {
-        if (action.type === 'skill') {
-            await useSkill(state);
-        } else if (action.type === 'switch') {
-            await switchPartyMember(state, action.data.newAlly, action.data.allAllies, action.data.partyMembers);
+    try {
+        for (const action of actionQueue) {
+            if (action.type === 'skill') {
+                await useSkill(state);
+            } else if (action.type === 'switch') {
+                await switchPartyMember(state, action.data.newAlly, action.data.allAllies, action.data.partyMembers);
+            }
         }
-        
-        if (state.checkBattleEnd()) break;
-    }
-    
-    clearQueue();
-    
-    actionInProgress = false;
-    if (executeButton) {
-        executeButton.style.opacity = "1";
-        executeButton.style.cursor = "pointer";
+    } finally {
+        clearQueue();
+        actionInProgress = false;
+        if (executeButton) {
+            executeButton.style.opacity = "1";
+            executeButton.style.cursor = "pointer";
+        }
     }
 }
 
@@ -501,9 +502,8 @@ function switchPartyMember(state, newAlly, allAllies, partyMembers) {
 }
 
 async function useSkill(state) {
+    const skillButton = document.getElementById("skill-button");
     try {
-        const skillButton = document.getElementById("skill-button");
-        
         if (skillButton) {
             skillButton.style.opacity = "0.6";
             skillButton.style.cursor = "not-allowed";
@@ -517,26 +517,14 @@ async function useSkill(state) {
         
         await state.allyAttack();
         updateHealthBars(state);
-        if (state.checkBattleEnd()) {
-            return;
+        const battleEnded = await state.checkBattleEnd();
+        
+        if (!battleEnded) {
+            await state.enemyAttack();
+            updateHealthBars(state);
+            await state.checkBattleEnd();
         }
-        await state.enemyAttack();
-        
-        partyMemberHealthStates[state.ally.name] = {
-            currentHealth: state.ally.health,
-            maxHealth: state.ally.maxHealth,
-            statuses: { ...state.ally.statuses }
-        };
-        
-        updateHealthBars(state);
-        if (state.checkBattleEnd()) {
-            return;
-        }        
-        state.nextTurn();
-    } catch (error) {
-        console.error("Error during battle sequence:", error);
     } finally {
-        const skillButton = document.getElementById("skill-button");
         if (skillButton) {
             skillButton.style.opacity = "1";
             skillButton.style.cursor = "pointer";

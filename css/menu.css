@@ -103,8 +103,7 @@
     overflow: visible;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     border-radius: 6px;
-    min-height: 400px;
-    max-height: 500px;
+    height: 650px;
     perspective: 1000px;
     cursor: pointer;
 }
@@ -126,18 +125,16 @@
     z-index: 2;
     height: 100%;
     padding: 10px;
-    gap: 15px;
 }
 .ally-image,
 .enemy-image,
 .recruitment-image {
-    width: auto;
+    max-width: 85%;
     height: auto;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
     filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
     transition: transform 0.3s ease;
-    max-height: 250px;
-    max-width: 85%;
+    max-height: 75%;
     object-fit: contain;
 }
 .info-panel:hover .ally-image,
@@ -322,43 +319,4 @@
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
-}
-.expanded-info {
-    display: none;
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.8);
-    border-radius: 0 0 8px 8px;
-    margin-top: -5px;
-    transition: all 0.3s ease;
-}
-
-.expanded-info.visible {
-    display: block;
-}
-
-.info-content {
-    color: white;
-}
-
-.info-content h3 {
-    margin: 0 0 10px 0;
-    color: #4CAF50;
-}
-
-.info-content p {
-    margin: 5px 0;
-    font-size: 14px;
-}
-
-.ally-section, .enemy-section {
-    background: rgba(40, 40, 40, 0.9);
-    border-radius: 8px;
-    margin-bottom: 15px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.ally-section:hover, .enemy-section:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }

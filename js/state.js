@@ -181,16 +181,16 @@ class State {
         });
     }
     
-    checkBattleEnd() {
+    async checkBattleEnd() {
         if (this.ally.health <= 0) {
-            this.returnToMenuWithDefeat();
+            await this.returnToMenuWithDefeat();
             return true;
         } else if (this.enemy.health <= 0) {
             if (this.round < this.totalRounds) {
-                this.nextRound();
+                await this.nextRound();
                 return true;
             } else {
-                this.returnToMenuWithVictory();
+                await this.returnToMenuWithVictory();
                 return true;
             }
         }
@@ -198,15 +198,17 @@ class State {
     }
     
     async nextRound() {
-        // Show card overlay for rounds 1-9 before transitioning
-        if (this.round >= 1 && this.round < 9) {
+        this.round++;
+        
+        // Show card overlay for rounds 2-9 (after first round ends)
+        let selectedItem = null;
+        if (this.round >= 2 && this.round <= 9) {
             const { showCardOverlay } = await import('./battle.js');
-            await showCardOverlay();
+            selectedItem = await showCardOverlay();
             // Add a small delay to ensure overlay is fully removed
             await new Promise(resolve => setTimeout(resolve, 350));
         }
 
-        this.round++;
         this.ally = new Ally(
             this.originalAlly.name,
             this.originalAlly.attack,
@@ -227,7 +229,8 @@ class State {
         
         this.battleData.rounds.push({
             roundNumber: this.round,
-            skillUsage: {}
+            skillUsage: {},
+            selectedItem: selectedItem
         });
         
         await this.storeBattleData();

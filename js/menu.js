@@ -66,31 +66,34 @@ function createSectionHTML(sectionType, items, party = []) {
     return items.map((item, index) => {
         const imageName = `${item.name}.svg`;
         const imagePath = `assets/images/${imageName}`;
-        const isInParty = party.includes(item.name);
-        const partyPosition = isInParty ? party.indexOf(item.name) + 1 : null;
-        const isLastMember = isInParty && party.length === 1;
-        
+        const partyIndex = party.indexOf(item.name);
+        const isInParty = partyIndex !== -1;
+        const partyPosition = isInParty ? partyIndex + 1 : null;
+        const isLastPartyMember = isInParty && party.length === 1;
         return `
-            <div class="${sectionType}-section ${isInParty ? 'in-party' : ''}" data-${sectionType}-index="${index}">
+            <div class="info-panel ${sectionType}-section ${isInParty ? 'in-party' : ''}">
                 <div class="${sectionType}-details-content">
                     <img src="${imagePath}" alt="${item.name} Front Image" class="${sectionType}-image">
                     <h2>${item.name}</h2>
-                    ${partyPosition ? `<div class="party-position">Position ${partyPosition}</div>` : ''}
+                    ${isInParty ? `<div class="party-position">Position ${partyPosition}</div>` : ''}
                     <div class="${sectionType}-buttons">
-                        ${sectionType === 'ally' ? 
-                            `<button class="party-button" data-character-name="${item.name}" ${isLastMember ? 'disabled' : ''}>
-                                ${isInParty ? 'Remove from Party' : 'Add to Party'}
-                            </button>` : 
-                            `<button class="battle-button" data-enemy-index="${index}">Battle</button>`
-                        }
+                        <button class="${sectionType === 'ally' ? 'party' : 'battle'}-button" 
+                            data-${sectionType}-index="${index}" 
+                            data-character-name="${item.name}"
+                            ${isLastPartyMember ? 'disabled' : ''}>
+                            ${sectionType === 'ally' ? (isInParty ? 'Remove from Party' : 'Add to Party') : 'Battle'}
+                        </button>
                     </div>
                 </div>
-                <div class="expanded-info">
-                    <div class="info-content">
-                        <h3>Stats</h3>
-                        <p>Health: ${item.health}</p>
-                        <p>Attack: ${item.attack || 'N/A'}</p>
-                        <p>Defense: ${item.defense || 'N/A'}</p>
+                <div class="${sectionType}-expanded-info">
+                    <h2>${item.name} Details</h2>
+                    <div class="${sectionType}-stats">
+                        <div class="stat-row"><span class="stat-label">Attack:</span> <span class="stat-value">${item.attack}</span></div>
+                        <div class="stat-row"><span class="stat-label">Health:</span> <span class="stat-value">${item.health}</span></div>
+                        <div class="stat-row"><span class="stat-label">Skill:</span> <span class="stat-value">${item.skillname}</span></div>
+                        <div class="stat-row"><span class="stat-label">Skill Status:</span> <span class="stat-value">${item.skillstatus}</span></div>
+                        <div class="stat-row"><span class="stat-label">Skill Count:</span> <span class="stat-value">${item.skillcount}</span></div>
+                        <div class="stat-row"><span class="stat-label">Skill Hits:</span> <span class="stat-value">${item.skillhits}</span></div>
                     </div>
                 </div>
             </div>
