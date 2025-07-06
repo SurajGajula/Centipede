@@ -77,6 +77,9 @@ export async function showCardOverlay() {
             return;
         }
         
+        let hasSelectedCard = false;
+        const cards = [];
+
         for (let i = 0; i < 3; i++) {
             const card = document.createElement('div');
             card.className = 'battle-card';
@@ -101,7 +104,19 @@ export async function showCardOverlay() {
             }
             
             card.addEventListener('click', () => {
+                if (hasSelectedCard) return;
+                hasSelectedCard = true;
+                
                 card.classList.add('selected');
+                
+                // Disable all other cards
+                cards.forEach(otherCard => {
+                    if (otherCard !== card) {
+                        otherCard.classList.add('disabled');
+                        otherCard.style.pointerEvents = 'none';
+                        otherCard.style.opacity = '0.5';
+                    }
+                });
                 
                 overlay.classList.add('fade-out');
                 
@@ -113,6 +128,8 @@ export async function showCardOverlay() {
                     resolve();
                 }, 300);
             });
+            
+            cards.push(card);
             container.appendChild(card);
         }
         

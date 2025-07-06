@@ -368,9 +368,21 @@
 }
 
 .battle-card.selected {
-    opacity: 0;
-    transform: scale(1.1);
-    pointer-events: none;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+    border: 2px solid #4CAF50;
+}
+
+.battle-card.disabled {
+    cursor: not-allowed;
+    transform: scale(0.95);
+    filter: grayscale(100%);
+    transition: all 0.3s ease;
+}
+
+.battle-card.disabled:hover {
+    transform: scale(0.95);
+    box-shadow: none;
 }
 
 .card-content {
