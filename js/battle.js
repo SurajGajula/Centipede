@@ -36,7 +36,6 @@ function clearQueue() {
 
 export async function showCardOverlay() {
     return new Promise(async (resolve) => {
-        // Remove any existing overlays first
         const existingOverlay = document.querySelector('.card-overlay');
         if (existingOverlay) {
             existingOverlay.remove();
@@ -48,7 +47,6 @@ export async function showCardOverlay() {
         const container = document.createElement('div');
         container.className = 'card-container';
         
-        // Load items from the API
         let items = [];
         try {
             const username = localStorage.getItem('username');
@@ -57,7 +55,7 @@ export async function showCardOverlay() {
             if (username && hashedPassword) {
                 const response = await makeApiCall('LOAD_ITEMS', {
                     body: JSON.stringify({
-                        rarity: 'common' // You can change this to determine rarity based on round/progress
+                        rarity: '1'
                     })
                 });
                 
@@ -79,12 +77,10 @@ export async function showCardOverlay() {
             return;
         }
         
-        // Create 3 cards
         for (let i = 0; i < 3; i++) {
             const card = document.createElement('div');
             card.className = 'battle-card';
             
-            // Add item content if available
             if (items[i]) {
                 const item = items[i];
                 card.innerHTML = `
@@ -95,7 +91,6 @@ export async function showCardOverlay() {
                     </div>
                 `;
             } else {
-                // Fallback content if no items
                 card.innerHTML = `
                     <div class="card-content">
                         <h3 class="card-title">Mystery Item</h3>
@@ -106,20 +101,17 @@ export async function showCardOverlay() {
             }
             
             card.addEventListener('click', () => {
-                // Add selected class to clicked card
                 card.classList.add('selected');
                 
-                // Add fade-out class to overlay
                 overlay.classList.add('fade-out');
                 
-                // Remove overlay after animation completes
                 setTimeout(() => {
                     if (overlay && overlay.parentNode) {
                         overlay.remove();
                     }
                     cardOverlayActive = false;
                     resolve();
-                }, 300); // Match the CSS transition duration
+                }, 300);
             });
             container.appendChild(card);
         }
@@ -188,7 +180,6 @@ export async function startBattle(ally, enemy) {
     selectedSkill = false;
     clearQueue();
     
-    // Reset party member health states for the new battle
     partyMemberHealthStates = {};
     
     await new Promise(resolve => setTimeout(resolve, 100));
