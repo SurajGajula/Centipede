@@ -105,11 +105,14 @@ export async function showCardOverlay() {
             
             card.addEventListener('click', () => {
                 if (hasSelectedCard) return;
+                
+                // Immediately disable all cards
+                overlay.style.pointerEvents = 'none';
                 hasSelectedCard = true;
                 
                 card.classList.add('selected');
                 
-                // Disable all other cards
+                // Disable and visually indicate other cards
                 cards.forEach(otherCard => {
                     if (otherCard !== card) {
                         otherCard.classList.add('disabled');
@@ -118,6 +121,7 @@ export async function showCardOverlay() {
                     }
                 });
                 
+                // Add fade-out after disabling interactions
                 overlay.classList.add('fade-out');
                 
                 setTimeout(() => {

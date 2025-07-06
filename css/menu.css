@@ -103,7 +103,8 @@
     overflow: visible;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     border-radius: 6px;
-    height: 650px;
+    min-height: 400px;
+    max-height: 500px;
     perspective: 1000px;
     cursor: pointer;
 }
@@ -125,16 +126,18 @@
     z-index: 2;
     height: 100%;
     padding: 10px;
+    gap: 15px;
 }
 .ally-image,
 .enemy-image,
 .recruitment-image {
-    max-width: 85%;
+    width: auto;
     height: auto;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
     transition: transform 0.3s ease;
-    max-height: 75%;
+    max-height: 250px;
+    max-width: 85%;
     object-fit: contain;
 }
 .info-panel:hover .ally-image,
