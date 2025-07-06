@@ -12,7 +12,8 @@ export const API_CONFIG = {
         LOAD_PARTY: '/loadparty',
         ADD_PARTY: '/addparty',
         STORE_BATTLE: '/storebattle',
-        PULL_RECRUITMENT: '/pullrecruitment'
+        PULL_RECRUITMENT: '/pullrecruitment',
+        LOAD_ITEMS: '/loaditems'
     }
 };
 

@@ -34,8 +34,8 @@ function clearQueue() {
     });
 }
 
-export function showCardOverlay() {
-    return new Promise(resolve => {
+export async function showCardOverlay() {
+    return new Promise(async (resolve) => {
         // Remove any existing overlays first
         const existingOverlay = document.querySelector('.card-overlay');
         if (existingOverlay) {
@@ -48,9 +48,63 @@ export function showCardOverlay() {
         const container = document.createElement('div');
         container.className = 'card-container';
         
+        // Load items from the API
+        let items = [];
+        try {
+            const username = localStorage.getItem('username');
+            const hashedPassword = localStorage.getItem('hashedPassword');
+            
+            if (username && hashedPassword) {
+                const response = await makeApiCall('LOAD_ITEMS', {
+                    body: JSON.stringify({
+                        rarity: 'common' // You can change this to determine rarity based on round/progress
+                    })
+                });
+                
+                if (response.status >= 400) {
+                    const { handleApiError } = await import('./error.js');
+                    handleApiError('Failed to load items', new Error(`HTTP ${response.status}`));
+                    return;
+                }
+                
+                const data = await response.json();
+                if (data.success && data.items) {
+                    items = data.items;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading items:', error);
+            const { handleApiError } = await import('./error.js');
+            handleApiError('Failed to load items', error);
+            return;
+        }
+        
+        // Create 3 cards
         for (let i = 0; i < 3; i++) {
             const card = document.createElement('div');
             card.className = 'battle-card';
+            
+            // Add item content if available
+            if (items[i]) {
+                const item = items[i];
+                card.innerHTML = `
+                    <div class="card-content">
+                        <h3 class="card-title">${item.name}</h3>
+                        <p class="card-description">${item.description}</p>
+                        <div class="card-rarity">${item.rarity}</div>
+                    </div>
+                `;
+            } else {
+                // Fallback content if no items
+                card.innerHTML = `
+                    <div class="card-content">
+                        <h3 class="card-title">Mystery Item</h3>
+                        <p class="card-description">A mysterious item awaits...</p>
+                        <div class="card-rarity">unknown</div>
+                    </div>
+                `;
+            }
+            
             card.addEventListener('click', () => {
                 // Add selected class to clicked card
                 card.classList.add('selected');

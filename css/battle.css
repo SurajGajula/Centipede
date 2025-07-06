@@ -354,6 +354,12 @@
     cursor: pointer;
     transition: transform 0.3s ease, opacity 0.3s ease;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    position: relative;
 }
 
 .battle-card:hover {
@@ -365,6 +371,55 @@
     opacity: 0;
     transform: scale(1.1);
     pointer-events: none;
+}
+
+.card-content {
+    text-align: center;
+    color: white;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.card-title {
+    font-size: 1.8em;
+    font-weight: bold;
+    margin: 0;
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    word-wrap: break-word;
+}
+
+.card-description {
+    font-size: 1.1em;
+    line-height: 1.5;
+    margin: 0;
+    color: #cccccc;
+    text-align: center;
+    max-height: 60%;
+    overflow-y: auto;
+    word-wrap: break-word;
+    padding: 0 10px;
+}
+
+.card-rarity {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #757575 0%, #616161 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: bold;
+    text-transform: uppercase;
+    border: 2px solid #424242;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .card-overlay.fade-out {
