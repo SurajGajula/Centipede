@@ -2,6 +2,7 @@ export function updateStatusDisplay(ally, enemy) {
     updateEntityStatusDisplay(ally, 'ally');
     updateEntityStatusDisplay(enemy, 'enemy');
 }
+
 function updateEntityStatusDisplay(entity, entityType) {
     let statusContainer = document.querySelector(`.${entityType}-status-container`);
     if (!statusContainer) {
@@ -33,20 +34,4 @@ function updateEntityStatusDisplay(entity, entityType) {
         statusIndicator.title = status;
         statusContainer.appendChild(statusIndicator);
     });
-}
-export function initializeStatusDisplay() {
-    const allyHealthContainer = document.querySelector('.ally-health-container');
-    const enemyHealthContainer = document.querySelector('.enemy-health-container');    
-    if (allyHealthContainer) {
-        const allyStatusContainer = document.createElement('div');
-        allyStatusContainer.className = 'ally-status-container';
-        allyHealthContainer.appendChild(allyStatusContainer);
-        allyStatusContainer.style.display = 'none';
-    }    
-    if (enemyHealthContainer) {
-        const enemyStatusContainer = document.createElement('div');
-        enemyStatusContainer.className = 'enemy-status-container';
-        enemyHealthContainer.appendChild(enemyStatusContainer);
-        enemyStatusContainer.style.display = 'none';
-    }
 }

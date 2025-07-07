@@ -1,4 +1,4 @@
-export function showNotification(type, message, targetElement) {
+export function showNotification(type, message, targetElement, color = null) {
     let container = targetElement.querySelector('.notification-container');
     if (!container) {
         container = document.createElement('div');
@@ -7,7 +7,10 @@ export function showNotification(type, message, targetElement) {
     }
     const notification = document.createElement('div');
     notification.className = type === 'status' ? 'status-notification' : 'damage-notification';
-    notification.textContent = message;    
+    notification.textContent = message;
+    if (color) {
+        notification.style.color = color;
+    }
     container.appendChild(notification);
     setTimeout(() => {
         if (container.contains(notification)) {
@@ -15,12 +18,14 @@ export function showNotification(type, message, targetElement) {
         }
     }, 1000);
 }
+
 export function showStatusNotification(statusName, targetElement) {
     showNotification('status', statusName, targetElement);
 }
-export function showDamageNotification(amount, targetElement) {
-    showNotification('damage', `-${amount}`, targetElement);
-} 
+
+export function showDamageNotification(amount, targetElement, color = null) {
+    showNotification('damage', `-${amount}`, targetElement, color);
+}
 
 export function showError(message) {
     const notification = document.createElement('div');
@@ -28,7 +33,6 @@ export function showError(message) {
     notification.textContent = message;
     document.body.appendChild(notification);
 
-    // Add styles if they don't exist
     if (!document.querySelector('#notification-styles')) {
         const style = document.createElement('style');
         style.id = 'notification-styles';
@@ -76,7 +80,6 @@ export function showError(message) {
         document.head.appendChild(style);
     }
 
-    // Remove the notification after 3 seconds
     setTimeout(() => {
         notification.remove();
     }, 3000);
@@ -88,7 +91,6 @@ export function showSuccess(message) {
     notification.textContent = message;
     document.body.appendChild(notification);
 
-    // Remove the notification after 3 seconds
     setTimeout(() => {
         notification.remove();
     }, 3000);

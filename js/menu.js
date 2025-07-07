@@ -378,7 +378,6 @@ export async function showMainMenu() {
 
     container.appendChild(menuDiv);
 
-    // Add menu styles
     const style = document.createElement('style');
     style.textContent = `
         .menu-container {

@@ -4,6 +4,7 @@ import { showStatusNotification, showDamageNotification } from "./notifications.
 import { displayAllies, displayEnemies } from "./menu.js";
 import Ally from "./ally.js";
 import { makeApiCall } from "./config.js";
+import { updateHealthBars } from "./battle.js";
 
 export async function showAllies() {
     try {
@@ -112,6 +113,43 @@ class State {
         this.state = (this.state + 1) % 4;
     }
     
+    async processStatusEffects() {
+        const allyElement = document.querySelector('.battle-ally');
+        const enemyElement = document.querySelector('.battle-enemy');
+
+        if (this.ally.statuses && this.ally.statuses.Burn > 0) {
+            await new Promise(resolve => {
+                setTimeout(async () => {
+                    const burnDamage = this.ally.statuses.Burn;
+                    this.ally.health = Math.max(0, this.ally.health - burnDamage);
+                    if (allyElement) {
+                        showDamageNotification(burnDamage, allyElement, '#ff4444');
+                    }
+                    updateHealthBars(this);
+                    resolve();
+                }, 500);
+            });
+        }
+
+        if (this.enemy.statuses && this.enemy.statuses.Burn > 0) {
+            await new Promise(resolve => {
+                setTimeout(async () => {
+                    const burnDamage = this.enemy.statuses.Burn;
+                    this.enemy.health = Math.max(0, this.enemy.health - burnDamage);
+                    if (enemyElement) {
+                        showDamageNotification(burnDamage, enemyElement, '#ff4444');
+                    }
+                    updateHealthBars(this);
+                    resolve();
+                }, 500);
+            });
+        }
+
+        updateStatusDisplay(this.ally, this.enemy);
+        
+        await this.checkBattleEnd();
+    }
+    
     async allyAttack() {
         return new Promise(resolve => {
             setTimeout(() => {
@@ -162,7 +200,7 @@ class State {
     
     async enemyAttack() {
         return new Promise(resolve => {
-            setTimeout(() => {
+            setTimeout(async () => {
                 this.ally.health -= this.enemy.attack;
                 const allyElement = document.querySelector('.battle-ally');
                 if (allyElement) {
@@ -175,7 +213,7 @@ class State {
                     if (isNewStatus && allyElement) {
                         showStatusNotification(this.enemy.skillstatus, allyElement);
                     }
-                }                
+                }
                 resolve();
             }, 1000);
         });
@@ -200,12 +238,10 @@ class State {
     async nextRound() {
         this.round++;
         
-        // Show card overlay for rounds 2-9 (after first round ends)
         let selectedItem = null;
         if (this.round >= 2 && this.round <= 9) {
             const { showCardOverlay } = await import('./battle.js');
             selectedItem = await showCardOverlay();
-            // Add a small delay to ensure overlay is fully removed
             await new Promise(resolve => setTimeout(resolve, 350));
         }
 

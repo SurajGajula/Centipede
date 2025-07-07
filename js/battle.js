@@ -1,5 +1,5 @@
 import State from "./state.js";
-import { initializeStatusDisplay, updateStatusDisplay } from "./status.js";
+import { updateStatusDisplay } from "./status.js";
 import { showLoadingScreen, hideLoadingScreen } from "./loading.js";
 import { showStatusNotification } from "./notifications.js";
 import { makeApiCall } from "./config.js";
@@ -35,10 +35,8 @@ function clearQueue() {
 }
 
 function formatCardDescription(description) {
-    // Replace any text in {} with green spans (removing the brackets)
     let formattedDesc = description.replace(/\{([^}]+)\}/g, '<span class="number">$1</span>');
     
-    // Replace status names in () with their icons
     formattedDesc = formattedDesc.replace(/\(([^)]+)\)/g, (match, status) => {
         const statusLower = status.toLowerCase();
         return `<span class="status-icon"><img src="assets/images/${statusLower}.svg" alt="${status}" title="${status}"></span>`;
@@ -116,10 +114,9 @@ export async function showCardOverlay() {
             }
             
             card.addEventListener('click', async () => {
-                if (isSelectionMade) return; // Prevent multiple selections
+                if (isSelectionMade) return;
                 isSelectionMade = true;
 
-                // Disable all cards
                 document.querySelectorAll('.battle-card').forEach(c => {
                     c.style.pointerEvents = 'none';
                 });
@@ -163,6 +160,9 @@ async function executeQueue(state) {
                 await switchPartyMember(state, action.data.newAlly, action.data.allAllies, action.data.partyMembers);
             }
         }
+
+        await state.processStatusEffects();
+        
     } finally {
         clearQueue();
         actionInProgress = false;
@@ -246,6 +246,8 @@ export async function startBattle(ally, enemy) {
             <div class="battle-ground"></div>
         </div>
     `;
+    
+    updateStatusDisplay(ally, enemy);
     
     let partyMembers = [];
     let allAllies = [];
@@ -344,9 +346,6 @@ export async function startBattle(ally, enemy) {
     }
     
     rightUI.innerHTML = rightUIContent;
-    
-    initializeStatusDisplay();
-    updateStatusDisplay(ally, enemy);
     
     const images = document.querySelectorAll('.battle-container img');
     await Promise.all(Array.from(images).map(img => {
@@ -542,6 +541,8 @@ function updateHealthBars(state) {
         enemyHealthBar.style.width = `${enemyHealthPercentage}%`;
     }
 }
+
+export { updateHealthBars };
 
 export function setupBattleButtons(enemies) {
     const battleButtons = document.querySelectorAll('.battle-button');

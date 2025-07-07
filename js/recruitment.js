@@ -27,10 +27,9 @@ export async function pullRecruitment(characterName) {
         hideLoadingScreen();
         const data = await response.json();
         
-        // Handle insufficient marbles case
         if (data.insufficientMarbles) {
             showAlert(`Not enough marbles! You need ${data.requiredMarbles} marbles but only have ${data.currentMarbles}.`);
-            return null; // Return null to indicate no recruitment was attempted
+            return null;
         }
         
         if (response.status >= 400 || data.statusCode >= 400) throw new Error(data.message || "Recruitment failed");
@@ -216,7 +215,6 @@ export function setupRecruitButtons(recruitments) {
                 this.textContent = originalText;
                 this.disabled = false;
                 
-                // If data is null, it means insufficient marbles (already handled with alert)
                 if (data === null) {
                     return;
                 }
@@ -308,7 +306,6 @@ export async function showRecruitment(allyName) {
     container.appendChild(recruitmentDiv);
 }
 
-// Add some basic CSS styles
 const style = document.createElement('style');
 style.textContent = `
     .recruitment-container {
